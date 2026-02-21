@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CanMonkey — Checkout Mockup (Proposed)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cm-navy: #0f172a;
+    --cm-navy-light: #1e293b;
+    --cm-blue: #3182ce;
+    --cm-blue-hover: #2b6cb0;
+    --cm-blue-light: rgba(49, 130, 206, 0.08);
+    --cm-blue-border: rgba(49, 130, 206, 0.25);
+    --cm-page-bg: #f1f5f9;
+    --cm-card-bg: #ffffff;
+    --cm-text: #0f172a;
+    --cm-text-secondary: #475569;
+    --cm-text-muted: #94a3b8;
+    --cm-border: #e2e8f0;
+    --cm-border-light: #f1f5f9;
+    --cm-input-border: #cbd5e1;
+    --cm-success: #059669;
+    --cm-success-bg: rgba(5, 150, 105, 0.06);
+    --cm-orange: #ea580c;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.03);
+    --shadow-card-hover: 0 2px 8px rgba(15,23,42,0.06), 0 8px 24px rgba(15,23,42,0.05);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--cm-page-bg);
+    color: var(--cm-text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    background: var(--cm-card-bg);
+    padding: 5px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; }
+  .logo svg { width: 28px; height: 28px; }
+  .logo-text { font-size: 16px; font-weight: 800; color: var(--cm-navy); letter-spacing: -0.5px; }
+  .header-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--cm-text-secondary); }
+  .header-avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--cm-border);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Trust bar */
+  .trust-bar {
+    background: var(--cm-navy);
+    padding: 5px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+  }
+  .trust-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .trust-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* Progress */
+  .progress-wrap {
+    background: var(--cm-card-bg);
+    border-bottom: none;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.08);
+    padding: 8px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 98;
+    height: 52px;
+    box-sizing: border-box;
+  }
+  .progress-bar {
+    max-width: 600px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative;
+  }
+  .progress-bar::before {
+    content: ''; position: absolute; top: 12px;
+    left: 20px; right: 20px; height: 2px;
+    background: var(--cm-border); z-index: 0;
+  }
+  .progress-bar::after {
+    content: ''; position: absolute; top: 12px;
+    left: 20px; height: 2px;
+    background: var(--cm-blue); z-index: 1;
+    transition: width 0.4s ease;
+  }
+  .progress-bar[data-step="1"]::after { width: 0%; }
+  .progress-bar[data-step="2"]::after { width: 33%; }
+  .progress-bar[data-step="3"]::after { width: 66%; }
+  .progress-bar[data-step="4"]::after { width: calc(100% - 40px); }
+  .step-dot {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    z-index: 2; cursor: pointer;
+  }
+  .step-circle {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--cm-card-bg); border: 2px solid var(--cm-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--cm-text-muted);
+    transition: all 0.3s ease;
+  }
+  .step-dot.active .step-circle {
+    background: var(--cm-blue); border-color: var(--cm-blue); color: white;
+  }
+  .step-dot.completed .step-circle {
+    background: var(--cm-navy); border-color: var(--cm-navy); color: white;
+  }
+  .step-label {
+    font-size: 10px; font-weight: 600; color: var(--cm-text-muted);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    transition: color 0.3s ease;
+  }
+  .step-dot.active .step-label { color: var(--cm-blue); }
+  .step-dot.completed .step-label { color: var(--cm-navy); }
+
+  /* Main container */
+  .main { max-width: 640px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* Section cards */
+  .section-card {
+    background: var(--cm-card-bg);
+    border: 1px solid var(--cm-border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-card);
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .section-card.visible { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section-title {
+    font-size: 20px; font-weight: 700; color: var(--cm-navy);
+    margin-bottom: 6px; letter-spacing: -0.3px;
+  }
+  .section-subtitle {
+    font-size: 13px; color: var(--cm-text-secondary);
+    margin-bottom: 24px; line-height: 1.5;
+  }
+
+  /* Trial banner */
+  .trial-banner {
+    background: linear-gradient(135deg, var(--cm-navy) 0%, var(--cm-navy-light) 100%);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    color: white;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .trial-banner.visible { display: block; }
+  .trial-banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.3px; }
+  .trial-banner p { font-size: 14px; opacity: 0.8; line-height: 1.55; }
+
+  /* Form elements */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 13px; font-weight: 700; color: var(--cm-text); }
+  .form-input {
+    padding: 12px 14px; border: 1px solid var(--cm-input-border);
+    border-radius: var(--radius-sm); font-size: 14px;
+    font-family: inherit; color: var(--cm-text);
+    background: var(--cm-card-bg);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--cm-blue); box-shadow: 0 0 0 3px var(--cm-blue-light); }
+  .form-input::placeholder { color: var(--cm-text-muted); }
+  .form-select {
+    padding: 12px 14px; border: 1px solid var(--cm-input-border);
+    border-radius: var(--radius-sm); font-size: 14px;
+    font-family: inherit; color: var(--cm-text);
+    background: var(--cm-card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 14px center;
+    appearance: none; cursor: pointer; outline: none;
+  }
+  .form-select:focus { border-color: var(--cm-blue); box-shadow: 0 0 0 3px var(--cm-blue-light); }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+  }
+  .toggle {
+    position: relative; width: 44px; height: 24px;
+    background: var(--cm-input-border); border-radius: 12px;
+    cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle.active { background: var(--cm-blue); }
+  .toggle::after {
+    content: ''; position: absolute; width: 18px; height: 18px;
+    background: white; border-radius: 50%; top: 3px; left: 3px;
+    transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle.active::after { transform: translateX(20px); }
+  .toggle-label { font-size: 14px; font-weight: 500; color: var(--cm-text); }
+
+  /* Notification chips */
+  .notif-section { margin-top: 24px; }
+  .notif-section-title { font-size: 13px; font-weight: 700; color: var(--cm-navy); margin-bottom: 10px; }
+  .notif-section-desc { font-size: 12px; color: var(--cm-text-secondary); margin-bottom: 10px; }
+  .chip-group { display: flex; gap: 10px; }
+  .chip-group.full-width { width: 100%; }
+  .chip-group.full-width .chip { flex: 1; justify-content: center; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: var(--radius-sm);
+    border: 2px solid var(--cm-border); background: var(--cm-card-bg);
+    font-size: 14px; font-weight: 600; color: var(--cm-text-secondary);
+    cursor: pointer; font-family: inherit; transition: all 0.2s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--cm-input-border); }
+  .chip.selected {
+    border-color: var(--cm-blue); background: var(--cm-blue-light);
+    color: var(--cm-blue);
+  }
+  .chip.selected svg { stroke: var(--cm-blue); }
+  .chip svg { transition: stroke 0.2s; }
+
+  /* Business expandable card */
+  .biz-section { margin-top: 20px; }
+  .biz-toggle-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; border: 2px solid var(--cm-border);
+    border-radius: var(--radius); cursor: pointer;
+    transition: all 0.2s; user-select: none; background: var(--cm-card-bg);
+  }
+  .biz-toggle-card:hover { border-color: var(--cm-input-border); }
+  .biz-toggle-card.active { border-color: var(--cm-blue); background: var(--cm-blue-light); }
+  .biz-toggle-left { display: flex; align-items: center; gap: 14px; }
+  .biz-checkbox {
+    width: 24px; height: 24px; border-radius: 6px;
+    border: 2px solid var(--cm-input-border); background: var(--cm-card-bg);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .biz-checkbox svg { opacity: 0; transition: opacity 0.2s; }
+  .biz-toggle-card.active .biz-checkbox {
+    background: var(--cm-blue); border-color: var(--cm-blue);
+  }
+  .biz-toggle-card.active .biz-checkbox svg { opacity: 1; }
+  .biz-toggle-title { font-size: 14px; font-weight: 700; color: var(--cm-navy); }
+  .biz-toggle-desc { font-size: 12px; color: var(--cm-text-secondary); margin-top: 1px; }
+  .biz-chevron { color: var(--cm-text-muted); transition: transform 0.3s; flex-shrink: 0; }
+  .biz-toggle-card.active .biz-chevron { transform: rotate(180deg); color: var(--cm-blue); }
+  .biz-fields {
+    max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 18px; border-left: 2px solid var(--cm-border);
+    margin-left: 12px; margin-top: 0;
+  }
+  .biz-fields.open {
+    max-height: 300px; padding: 20px 18px 4px;
+    border-left-color: var(--cm-blue);
+    margin-top: 12px;
+  }
+
+  /* Can stepper */
+  .stepper {
+    display: flex; align-items: center;
+    border: 1px solid var(--cm-input-border); border-radius: var(--radius-sm);
+    overflow: hidden; margin-top: 6px;
+  }
+  .stepper-btn {
+    width: 44px; height: 44px; border: none;
+    background: var(--cm-page-bg); color: var(--cm-navy);
+    font-size: 20px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stepper-btn:hover { background: var(--cm-border); }
+  .stepper-btn:active { background: var(--cm-input-border); }
+  .stepper-btn.disabled { color: var(--cm-border); cursor: not-allowed; }
+  .stepper-btn.disabled:hover { background: var(--cm-page-bg); }
+  .stepper-value {
+    flex: 1; text-align: center; font-size: 18px;
+    font-weight: 700; color: var(--cm-navy);
+    background: var(--cm-card-bg);
+    border-left: 1px solid var(--cm-input-border);
+    border-right: 1px solid var(--cm-input-border);
+    height: 44px; line-height: 44px;
+  }
+  .can-limit-note {
+    font-size: 12px; color: var(--cm-text-muted);
+    margin-top: 8px; line-height: 1.4;
+  }
+  .can-limit-note a { color: var(--cm-blue); text-decoration: none; font-weight: 600; }
+  .can-limit-note.warning { color: var(--cm-orange); }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%; padding: 14px 24px;
+    background: var(--cm-navy); color: white;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .btn-primary:hover { background: var(--cm-navy-light); transform: translateY(-1px); box-shadow: var(--shadow-card-hover); }
+  .btn-back {
+    background: none; border: 1px solid var(--cm-border);
+    color: var(--cm-text-secondary); padding: 12px 24px;
+    border-radius: var(--radius-sm); font-size: 14px;
+    font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--cm-text-muted); color: var(--cm-text); }
+  .btn-row { display: flex; gap: 12px; margin-top: 24px; }
+  .btn-row .btn-primary { flex: 1; }
+
+  /* Property info icons */
+  .property-field-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 700; color: var(--cm-text);
+  }
+  .property-field-label svg { width: 16px; height: 16px; color: var(--cm-text-muted); }
+
+  /* Billing toggle (prominent) */
+  .billing-toggle-wrap {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 14px; margin-bottom: 20px;
+    background: var(--cm-page-bg); border-radius: var(--radius-sm);
+    border: 1px solid var(--cm-border);
+  }
+  .billing-option {
+    padding: 10px 20px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    color: var(--cm-text-secondary); background: transparent;
+    border: none; font-family: inherit;
+  }
+  .billing-option.active {
+    background: var(--cm-navy); color: white;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.15);
+  }
+  .billing-save {
+    font-size: 10px; font-weight: 700; color: var(--cm-success);
+    background: var(--cm-success-bg); padding: 2px 6px;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-left: 4px;
+  }
+
+  /* Upsell cards */
+  .upsell-area { margin-bottom: 24px; }
+  .upsell-area-title { font-size: 14px; font-weight: 700; color: var(--cm-navy); margin-bottom: 12px; }
+  .upsell-cards { display: flex; flex-direction: column; gap: 12px; }
+  .upsell-card {
+    border: 2px solid var(--cm-border); border-radius: var(--radius);
+    padding: 18px 20px; display: flex; justify-content: space-between;
+    align-items: center; background: var(--cm-card-bg);
+    cursor: pointer; transition: all 0.2s; user-select: none;
+  }
+  .upsell-card:hover { border-color: var(--cm-input-border); box-shadow: var(--shadow-card); }
+  .upsell-card.added { border-color: var(--cm-blue); background: var(--cm-blue-light); }
+  .upsell-card-left { flex: 1; }
+  .upsell-card-name { font-size: 15px; font-weight: 700; color: var(--cm-navy); margin-bottom: 3px; }
+  .upsell-card-desc { font-size: 12px; color: var(--cm-text-secondary); line-height: 1.4; margin-bottom: 5px; }
+  .upsell-card-price { font-size: 14px; font-weight: 600; color: var(--cm-navy); }
+  .upsell-card-price .original { text-decoration: line-through; color: var(--cm-text-muted); margin-right: 6px; font-weight: 400; }
+  .upsell-card-price .save-badge {
+    display: inline-block; background: rgba(49,130,206,0.1);
+    color: var(--cm-blue); font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px; margin-left: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .upsell-card-details { font-size: 11px; color: var(--cm-text-muted); margin-top: 3px; }
+  .upsell-btn {
+    flex-shrink: 0; margin-left: 16px; padding: 10px 20px;
+    border-radius: var(--radius-sm); font-size: 12px; font-weight: 700;
+    cursor: pointer; border: none; text-transform: uppercase;
+    letter-spacing: 0.5px; font-family: inherit; transition: all 0.2s;
+  }
+  .upsell-btn.add { background: var(--cm-navy); color: white; }
+  .upsell-btn.add:hover { background: var(--cm-navy-light); }
+  .upsell-btn.added { background: var(--cm-blue); color: white; }
+
+  /* Product table */
+  .product-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  .product-table th {
+    text-align: left; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--cm-text-muted); font-weight: 600;
+    padding: 10px 0; border-bottom: 2px solid var(--cm-border);
+  }
+  .product-table th:nth-child(2), .product-table td:nth-child(2),
+  .product-table th:nth-child(3), .product-table td:nth-child(3) { text-align: center; }
+  .product-table th:last-child, .product-table td:last-child { text-align: right; }
+  .product-table td { padding: 12px 0; color: var(--cm-text); border-bottom: 1px solid var(--cm-border-light); }
+  .product-table .total-row td { font-weight: 700; font-size: 14px; border-bottom: none; border-top: 2px solid var(--cm-border); padding-top: 14px; }
+  .product-table .upsell-row td { color: var(--cm-blue); font-weight: 500; }
+  .product-table .trial-note { font-size: 11px; color: var(--cm-text-muted); font-weight: 400; font-style: italic; }
+
+  /* Billing summary */
+  .billing-summary {
+    background: var(--cm-page-bg); border-radius: var(--radius-sm);
+    padding: 16px; margin-bottom: 20px;
+    border: 1px solid var(--cm-border);
+  }
+  .billing-summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; }
+  .billing-summary-row .label { color: var(--cm-text-secondary); }
+  .billing-summary-row .value { font-weight: 600; color: var(--cm-text); }
+
+  /* Promo code */
+  .promo-row {
+    display: flex; gap: 8px; margin-bottom: 20px;
+  }
+  .promo-row .form-input { flex: 1; }
+  .promo-btn {
+    padding: 12px 20px; background: var(--cm-page-bg);
+    border: 1px solid var(--cm-input-border); border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600; color: var(--cm-text-secondary);
+    cursor: pointer; font-family: inherit; transition: all 0.2s;
+  }
+  .promo-btn:hover { border-color: var(--cm-text-muted); color: var(--cm-text); }
+
+  /* Rate disclaimer */
+  .rate-disclaimer {
+    font-size: 12px; color: var(--cm-text-muted); line-height: 1.5;
+    padding: 12px 14px; background: var(--cm-page-bg);
+    border-radius: var(--radius-sm); margin-bottom: 20px;
+    border-left: 3px solid var(--cm-border);
+  }
+
+  /* Card entry mockup */
+  .card-entry {
+    border: 1px solid var(--cm-border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 20px;
+  }
+  .card-tabs { display: flex; border-bottom: 1px solid var(--cm-border); }
+  .card-tab {
+    flex: 1; padding: 14px; text-align: center; font-size: 13px;
+    font-weight: 600; cursor: pointer; background: var(--cm-card-bg);
+    border: none; font-family: inherit; color: var(--cm-text-secondary);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s;
+  }
+  .card-tab.active { color: var(--cm-blue); border-bottom: 2px solid var(--cm-blue); }
+  .card-tab .bank-badge {
+    font-size: 10px; font-weight: 700; background: var(--cm-success);
+    color: white; padding: 2px 6px; border-radius: 4px;
+  }
+  .card-body { padding: 20px; }
+
+  /* Security badges */
+  .security-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 20px; padding: 16px 0; margin-bottom: 16px;
+  }
+  .security-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--cm-text-muted); font-weight: 500;
+  }
+  .security-badge svg { width: 16px; height: 16px; }
+
+  /* Terms */
+  .terms-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+  .terms-text { font-size: 13px; color: var(--cm-text-secondary); line-height: 1.5; }
+  .terms-text a { color: var(--cm-blue); text-decoration: none; font-weight: 500; }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%; padding: 18px 24px;
+    background: var(--cm-navy); color: white;
+    border: none; border-radius: var(--radius);
+    font-size: 17px; font-weight: 800; font-family: inherit;
+    cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.2);
+  }
+  .btn-submit:hover { background: var(--cm-navy-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(15,23,42,0.25); }
+  .btn-submit-sub { text-align: center; font-size: 12px; color: var(--cm-text-muted); margin-top: 10px; }
+  .btn-submit-sub svg { width: 12px; height: 12px; vertical-align: middle; margin-right: 4px; }
+
+  /* Sticky order strip */
+  .order-strip {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--cm-card-bg);
+    border-top: 1px solid var(--cm-border);
+    box-shadow: 0 -2px 12px rgba(15,23,42,0.06);
+    z-index: 100;
+    padding: 12px 24px;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+  .order-strip.visible { display: block; }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .order-strip-inner {
+    max-width: 640px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .order-strip-left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .order-strip-plan {
+    font-size: 13px; font-weight: 700; color: var(--cm-navy);
+  }
+  .order-strip-dot { color: var(--cm-text-muted); }
+  .order-strip-rate {
+    font-size: 13px; font-weight: 500; color: var(--cm-text-secondary);
+  }
+  .order-strip-right {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .order-strip-due-label {
+    font-size: 12px; color: var(--cm-text-muted); font-weight: 500;
+  }
+  .order-strip-due {
+    font-size: 16px; font-weight: 800; color: var(--cm-navy);
+  }
+
+  /* Mockup badge */
+  .mockup-badge {
+    position: fixed; bottom: 60px; right: 20px;
+    background: var(--cm-navy); color: white;
+    padding: 10px 16px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; box-shadow: 0 4px 20px rgba(15,23,42,0.3);
+    z-index: 200;
+  }
+
+  .divider { height: 1px; background: var(--cm-border); margin: 20px 0; }
+
+  /* Same as service toggle */
+  .same-address-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; padding: 12px 16px;
+    background: var(--cm-page-bg); border-radius: var(--radius-sm);
+    border: 1px solid var(--cm-border);
+  }
+
+  /* Billing address collapsible */
+  .billing-fields {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, margin 0.35s ease;
+    margin-bottom: 0;
+  }
+  .billing-fields.open {
+    max-height: 500px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 500px) {
+    .form-row { grid-template-columns: 1fr; }
+    .header { padding: 12px 16px; }
+    .trust-bar { gap: 10px; padding: 6px 16px; }
+    .trust-item { font-size: 10px; }
+    .progress-wrap { padding: 6px 16px; height: 48px; }
+    .step-label { font-size: 9px; }
+    .section-card { padding: 20px; }
+    .main { padding: 20px 12px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#0f172a"/><text x="20" y="26" text-anchor="middle" fill="white" font-size="18" font-weight="800" font-family="DM Sans">🐵</text></svg>
+    <span class="logo-text">CanMonkey</span>
+  </div>
+  <div class="header-right">
+    checkouttesting&#64;gmail.com
+    <div class="header-avatar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- Trust Bar -->
+<div class="trust-bar">
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    15-Day Risk-Free Trial
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    No Charge Until Trial Ends
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Cancel Anytime
+  </div>
+  </div>
+</div>
+
+<!-- Progress Steps -->
+<div class="progress-wrap">
+  <div class="progress-bar" id="progressBar" data-step="1">
+    <div class="step-dot active" onclick="goToStep(1)">
+      <div class="step-circle">1</div>
+      <div class="step-label">Contact</div>
+    </div>
+    <div class="step-dot" onclick="goToStep(2)">
+      <div class="step-circle">2</div>
+      <div class="step-label">Address</div>
+    </div>
+    <div class="step-dot" onclick="goToStep(3)">
+      <div class="step-circle">3</div>
+      <div class="step-label">Property</div>
+    </div>
+    <div class="step-dot" onclick="goToStep(4)">
+      <div class="step-circle">4</div>
+      <div class="step-label">Payment</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1: Contact Information -->
+  <div class="trial-banner visible" id="trialBanner">
+    <h2>15 Day Risk-Free Trial</h2>
+    <p>Enjoy two weeks of free service to see if CanMonkey is the right fit for you, no strings attached! If you choose to continue enjoying our service after your free trial ends, you will automatically be charged your monthly plan fee.</p>
+  </div>
+
+  <div class="section-card visible" id="step1">
+    <div class="section-title">Contact Information</div>
+    <div class="section-subtitle">Tell us how to reach you.</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">First Name</label>
+        <input class="form-input" type="text" value="Checkout" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last Name</label>
+        <input class="form-input" type="text" value="Testing" />
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" value="checkouttesting@gmail.com" />
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-label">Mobile Number</label>
+        <input class="form-input" type="tel" value="(913) 333-9009" />
+      </div>
+    </div>
+
+    <!-- Notification Preferences — Selectable chips -->
+    <div class="notif-section">
+      <div class="notif-section-title">Notification Preferences</div>
+      <div class="chip-group full-width">
+        <button class="chip" onclick="this.classList.toggle('selected')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email
+        </button>
+        <button class="chip selected" onclick="this.classList.toggle('selected')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          SMS
+        </button>
+      </div>
+    </div>
+
+    <!-- Business Registration — Expandable card -->
+    <div class="biz-section">
+      <div class="biz-toggle-card" id="bizToggle" onclick="toggleBusiness()">
+        <div class="biz-toggle-left">
+          <div class="biz-checkbox" id="bizCheckbox">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div>
+            <div class="biz-toggle-title">I'm registering as a business</div>
+            <div class="biz-toggle-desc">Property managers, STR owners, and other businesses</div>
+          </div>
+        </div>
+        <svg class="biz-chevron" id="bizChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="biz-fields" id="bizFields">
+        <div class="form-row full">
+          <div class="form-group">
+            <label class="form-label">Company Name</label>
+            <input class="form-input" type="text" placeholder="eg. ABC Inc." />
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label class="form-label">Company Type</label>
+            <select class="form-select">
+              <option value="" disabled selected>Select type</option>
+              <option>Management Company</option>
+              <option>Short-Term Rental Owner</option>
+              <option>HOA / Community Association</option>
+              <option>Real Estate / Property Group</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goToStep(2)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Address -->
+  <div class="section-card" id="step2">
+    <div class="section-title">Service Address</div>
+    <div class="section-subtitle">Where should we pick up your cans?</div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-label">Address 1</label>
+        <input class="form-input" type="text" value="526 South Mill Avenue" />
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-label">Address 2</label>
+        <input class="form-input" type="text" placeholder="ex. Street 220" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">City</label>
+        <input class="form-input" type="text" value="Tempe" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">State</label>
+        <input class="form-input" type="text" value="Arizona" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ZIP</label>
+        <input class="form-input" type="text" value="85281-3723" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Country</label>
+        <input class="form-input" type="text" value="US" />
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-label">Property Type</label>
+        <select class="form-select">
+          <option selected>Main Residence</option>
+          <option>Vacation Rental</option>
+          <option>Investment Property</option>
+          <option>Commercial</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title" style="font-size: 18px;">Billing Address</div>
+    <div class="chip-group" style="margin-bottom: 20px;">
+      <button class="chip selected" id="sameAddressChip" onclick="toggleBillingAddress()" style="border-radius: var(--radius-sm);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Same as service address
+      </button>
+    </div>
+
+    <div class="billing-fields" id="billingFields">
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Address 1</label>
+          <input class="form-input" type="text" placeholder="123 Main Street" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Address 2</label>
+          <input class="form-input" type="text" placeholder="ex. Suite 200" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input class="form-input" type="text" placeholder="City" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <input class="form-input" type="text" placeholder="State" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ZIP</label>
+          <input class="form-input" type="text" placeholder="ZIP code" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Country</label>
+          <input class="form-input" type="text" value="US" />
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-back" onclick="goToStep(1)">Back</button>
+      <button class="btn-primary" onclick="goToStep(3)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Property Info -->
+  <div class="section-card" id="step3">
+    <div class="section-title">Property Information</div>
+    <div class="section-subtitle">Help us set up your collection schedule.</div>
+
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="property-field-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Trash and Recycle Day
+        </label>
+        <div style="font-size: 12px; color: var(--cm-text-secondary); margin: 4px 0 8px;">Separate trash and recycle days? Select the Premium or Business Plan.</div>
+        <select class="form-select">
+          <option>Sunday</option><option>Monday</option><option selected>Tuesday</option>
+          <option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="property-field-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6"/><path d="M5 9h14"/><path d="M5 20h14"/><path d="M9 9v8"/><path d="M15 9v8"/></svg>
+          Trash Cans
+        </label>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="adjustCan('trash', -1)">−</button>
+          <span class="stepper-value" id="trashCount">1</span>
+          <button class="stepper-btn" onclick="adjustCan('trash', 1)">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="property-field-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6"/><path d="M5 9h14"/><path d="M5 20h14"/><path d="M12 12v5"/><path d="M9.5 14.5l2.5-2.5 2.5 2.5"/></svg>
+          Recycle Cans
+        </label>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="adjustCan('recycle', -1)">−</button>
+          <span class="stepper-value" id="recycleCount">1</span>
+          <button class="stepper-btn" onclick="adjustCan('recycle', 1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="can-limit-note" id="canLimitNote">Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade your plan</a></div>
+
+    <div class="form-row full" style="margin-top: 16px;">
+      <div class="form-group">
+        <label class="form-label">Recycling Pickup Frequency</label>
+        <select class="form-select">
+          <option selected>Every week</option>
+          <option>Every other week (alternating)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: var(--cm-text-secondary); margin-top: 16px; line-height: 1.5;">
+      After signing up, you'll have the option to provide additional details about your property, such as can location, gate codes, photos, and other relevant information.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-back" onclick="goToStep(2)">Back</button>
+      <button class="btn-primary" onclick="goToStep(4)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Payment -->
+  <div class="section-card" id="step4">
+    <div class="section-title">Payment Information</div>
+    <div class="section-subtitle">Review your order and complete checkout.</div>
+
+    <!-- Upsell cards -->
+    <div class="upsell-area">
+      <div class="upsell-area-title">Enhance Your Service</div>
+      <div class="upsell-cards">
+        <div class="upsell-card" id="cleaningCard" onclick="toggleUpsell('cleaning')">
+          <div class="upsell-card-left">
+            <div class="upsell-card-name">🧼 Can Cleaning</div>
+            <div class="upsell-card-desc">Keep your cans fresh &amp; sanitized every quarter</div>
+            <div class="upsell-card-price">
+              <span class="original">$18/mo</span>$9/mo
+              <span class="save-badge">Save 50%</span>
+            </div>
+          </div>
+          <button class="upsell-btn add" id="cleaningBtn">Add</button>
+        </div>
+        <div class="upsell-card" id="wasteCard" onclick="toggleUpsell('waste')">
+          <div class="upsell-card-left">
+            <div class="upsell-card-name">🗑️ On-Demand Waste Removal</div>
+            <div class="upsell-card-desc">Start fresh — one-time trash removal before your service begins</div>
+            <div class="upsell-card-price">Phoenix: $59 · Other areas: $89</div>
+            <div class="upsell-card-details">Includes 1st can · +$25/extra can · +$5/bag</div>
+          </div>
+          <button class="upsell-btn add" id="wasteBtn">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Billing toggle -->
+    <div class="billing-toggle-wrap">
+      <button class="billing-option active" id="quarterlyBtn" onclick="setBilling('quarterly')">
+        Quarterly<span class="billing-save">Save</span>
+      </button>
+      <button class="billing-option" id="monthlyBtn" onclick="setBilling('monthly')">
+        Monthly
+      </button>
+    </div>
+
+    <!-- Product table -->
+    <table class="product-table">
+      <thead>
+        <tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr>
+      </thead>
+      <tbody id="productTableBody">
+        <tr>
+          <td>Can-to-Curb Starter Plan | Quarterly Pay ($45/month)<br><span class="trial-note">(free during trial)</span></td>
+          <td>$0.00</td><td>1</td><td>$0.00</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3">Total Due Today:</td><td id="totalAmount">$0.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Billing summary -->
+    <div class="billing-summary">
+      <div class="billing-summary-row">
+        <span class="label">Billing Start Date</span>
+        <span class="value">March 7, 2026</span>
+      </div>
+      <div class="billing-summary-row">
+        <span class="label">End Date</span>
+        <span class="value">Until Cancelled</span>
+      </div>
+      <div class="billing-summary-row">
+        <span class="label">Monthly Rate</span>
+        <span class="value" id="summaryRate">$45.00 / month</span>
+      </div>
+    </div>
+
+    <div class="rate-disclaimer">
+      Please note that the rate plan selected may be subject to change based on driveway length, additional collection days, additional cans, and/or the need for special access arrangements.
+    </div>
+
+    <!-- Promo code -->
+    <div class="promo-row">
+      <input class="form-input" type="text" placeholder="Enter Promo Code" />
+      <button class="promo-btn">Apply</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Card entry -->
+    <div class="card-entry">
+      <div class="card-tabs">
+        <button class="card-tab active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Card
+        </button>
+        <button class="card-tab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"/></svg>
+          Bank
+          <span class="bank-badge">$5 back</span>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="form-row full" style="margin-bottom: 12px;">
+          <div class="form-group">
+            <label class="form-label">Card number</label>
+            <input class="form-input" placeholder="1234 1234 1234 1234" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Expiration date</label>
+            <input class="form-input" placeholder="MM / YY" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Security code</label>
+            <input class="form-input" placeholder="CVC" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Country</label>
+            <select class="form-select"><option selected>United States</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ZIP code</label>
+            <input class="form-input" placeholder="12345" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security badges -->
+    <div class="security-row">
+      <div class="security-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        SSL Encrypted
+      </div>
+      <div class="security-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Stripe Secured
+      </div>
+      <div class="security-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Money-Back Guarantee
+      </div>
+    </div>
+
+    <!-- Terms -->
+    <div class="terms-row">
+      <div class="toggle" onclick="this.classList.toggle('active')"></div>
+      <div class="terms-text">I have read and agree to CanMonkey's <a href="#">terms and conditions</a></div>
+    </div>
+
+    <div class="btn-row" style="flex-direction: column; gap: 0;">
+      <button class="btn-back" onclick="goToStep(3)" style="margin-bottom: 12px;">Back</button>
+      <button class="btn-submit">Start My Free Trial</button>
+      <div class="btn-submit-sub">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Your card will not be charged until March 7, 2026
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mockup badge -->
+<!-- Sticky order summary bar (visible on Step 4 only) -->
+<div class="order-strip" id="orderStrip">
+  <div class="order-strip-inner">
+    <div class="order-strip-left">
+      <span class="order-strip-plan" id="stripPlan">Starter Plan</span>
+      <span class="order-strip-dot">·</span>
+      <span class="order-strip-rate" id="stripRate">$45/mo</span>
+    </div>
+    <div class="order-strip-right">
+      <span class="order-strip-due-label">Due today</span>
+      <span class="order-strip-due">$0.00</span>
+    </div>
+  </div>
+</div>
+
+<div class="mockup-badge">📐 Proposed Mockup</div>
+
+<script>
+// Dynamic sticky offsets
+function updateStickyOffsets() {
+  const header = document.querySelector('.header');
+  const trustBar = document.querySelector('.trust-bar');
+  const progressWrap = document.querySelector('.progress-wrap');
+  
+  const headerH = header.offsetHeight;
+  const trustH = trustBar.offsetHeight;
+  
+  trustBar.style.top = headerH + 'px';
+  progressWrap.style.top = (headerH + trustH) + 'px';
+}
+updateStickyOffsets();
+window.addEventListener('resize', updateStickyOffsets);
+
+let canCounts = { trash: 1, recycle: 1 };
+const CAN_LIMIT = 2;
+
+function adjustCan(type, delta) {
+  const newVal = canCounts[type] + delta;
+  const otherType = type === 'trash' ? 'recycle' : 'trash';
+  const total = newVal + canCounts[otherType];
+
+  if (newVal < 0 || newVal > CAN_LIMIT || total > CAN_LIMIT) return;
+
+  canCounts[type] = newVal;
+  document.getElementById(type + 'Count').textContent = newVal;
+
+  // Update button disabled states
+  updateStepperStates();
+}
+
+function updateStepperStates() {
+  const total = canCounts.trash + canCounts.recycle;
+  const note = document.getElementById('canLimitNote');
+
+  // Update all stepper buttons
+  document.querySelectorAll('.stepper').forEach((stepper, i) => {
+    const type = i === 0 ? 'trash' : 'recycle';
+    const btns = stepper.querySelectorAll('.stepper-btn');
+    const minusBtn = btns[0];
+    const plusBtn = btns[1];
+
+    minusBtn.classList.toggle('disabled', canCounts[type] <= 0);
+    plusBtn.classList.toggle('disabled', total >= CAN_LIMIT);
+  });
+
+  // Update limit note
+  if (total >= CAN_LIMIT) {
+    note.classList.add('warning');
+    note.innerHTML = 'You\'ve reached the 2-can limit for the Starter Plan. Need more? <a href="#">Upgrade your plan</a>';
+  } else {
+    note.classList.remove('warning');
+    note.innerHTML = 'Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade your plan</a>';
+  }
+}
+
+function selectRecycling(clicked, value) {
+  const group = clicked.parentElement;
+  group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  clicked.classList.add('selected');
+}
+
+let sameAddress = true;
+
+function toggleBillingAddress() {
+  sameAddress = !sameAddress;
+  document.getElementById('sameAddressChip').classList.toggle('selected', sameAddress);
+  document.getElementById('billingFields').classList.toggle('open', !sameAddress);
+}
+
+let bizOpen = false;
+
+function toggleBusiness() {
+  bizOpen = !bizOpen;
+  document.getElementById('bizToggle').classList.toggle('active', bizOpen);
+  document.getElementById('bizFields').classList.toggle('open', bizOpen);
+}
+
+let currentStep = 1;
+let upsells = { cleaning: false, waste: false };
+let currentBilling = 'quarterly';
+
+function goToStep(step) {
+  // Only allow forward navigation to steps ≤ max completed + 1
+  currentStep = step;
+
+  // Update progress bar
+  document.getElementById('progressBar').setAttribute('data-step', step);
+
+  // Update step dots
+  document.querySelectorAll('.step-dot').forEach((dot, i) => {
+    dot.classList.remove('active', 'completed');
+    if (i + 1 === step) dot.classList.add('active');
+    else if (i + 1 < step) dot.classList.add('completed');
+  });
+
+  // Show/hide sections
+  ['step1','step2','step3','step4'].forEach(id => {
+    document.getElementById(id).classList.remove('visible');
+  });
+  document.getElementById('step' + step).classList.add('visible');
+
+  // Show order strip only on step 4
+  document.getElementById('orderStrip').classList.toggle('visible', step === 4);
+  document.getElementById('trialBanner').classList.toggle('visible', step === 1);
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleUpsell(type) {
+  upsells[type] = !upsells[type];
+
+  if (type === 'cleaning') {
+    const card = document.getElementById('cleaningCard');
+    const btn = document.getElementById('cleaningBtn');
+    card.classList.toggle('added', upsells.cleaning);
+    btn.className = upsells.cleaning ? 'upsell-btn added' : 'upsell-btn add';
+    btn.textContent = upsells.cleaning ? '✓ Added' : 'Add';
+  } else {
+    const card = document.getElementById('wasteCard');
+    const btn = document.getElementById('wasteBtn');
+    card.classList.toggle('added', upsells.waste);
+    btn.className = upsells.waste ? 'upsell-btn added' : 'upsell-btn add';
+    btn.textContent = upsells.waste ? '✓ Added' : 'Add';
+  }
+
+  updateProductTable();
+}
+
+function updateProductTable() {
+  const tbody = document.getElementById('productTableBody');
+  const isQuarterly = currentBilling === 'quarterly';
+  const planPrice = isQuarterly ? '$45' : '$54';
+  const planLabel = isQuarterly ? 'Quarterly Pay' : 'Monthly Pay';
+  const cleaningLabel = isQuarterly ? 'Quarterly' : 'Monthly';
+
+  let html = `<tr>
+    <td>Can-to-Curb Starter Plan | ${planLabel} (${planPrice}/month)<br><span class="trial-note">(free during trial)</span></td>
+    <td>$0.00</td><td>1</td><td>$0.00</td>
+  </tr>`;
+
+  if (upsells.cleaning) {
+    html += `<tr class="upsell-row">
+      <td>🧼 Can Cleaning | ${cleaningLabel} ($9/month)<br><span class="trial-note">(free during trial)</span></td>
+      <td>$0.00</td><td>1</td><td>$0.00</td>
+    </tr>`;
+  }
+
+  if (upsells.waste) {
+    html += `<tr class="upsell-row">
+      <td>🗑️ On-Demand Waste Removal<br><span class="trial-note">(billed separately after signup)</span></td>
+      <td>—</td><td>1</td><td>TBD</td>
+    </tr>`;
+  }
+
+  html += `<tr class="total-row">
+    <td colspan="3">Total Due Today:</td><td>$0.00</td>
+  </tr>`;
+
+  tbody.innerHTML = html;
+
+  // Update billing summary monthly rate (base + upsells)
+  const baseRate = isQuarterly ? 45 : 54;
+  const cleaningRate = upsells.cleaning ? 9 : 0;
+  const totalMonthly = baseRate + cleaningRate;
+  const summaryRate = document.getElementById('summaryRate');
+  if (summaryRate) summaryRate.textContent = '$' + totalMonthly + '.00 / month';
+
+  // Update sticky order strip
+  const stripRate = document.getElementById('stripRate');
+  if (stripRate) stripRate.textContent = '$' + totalMonthly + '/mo';
+}
+
+function setBilling(type) {
+  document.getElementById('quarterlyBtn').classList.toggle('active', type === 'quarterly');
+  document.getElementById('monthlyBtn').classList.toggle('active', type === 'monthly');
+  currentBilling = type;
+  updateProductTable();
+}
+</script>
+</body>
+</html>
