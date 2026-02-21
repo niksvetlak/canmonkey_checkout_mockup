@@ -876,7 +876,7 @@
         </div>
       </div>
     </div>
-    <div class="can-limit-note" id="canLimitNote">Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade your plan</a></div>
+    <div class="can-limit-note" id="canLimitNote">Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade Plan</a></div>
 
     <div class="form-row full" style="margin-top: 16px;">
       <div class="form-group">
@@ -1139,10 +1139,10 @@ function updateStepperStates() {
   // Update limit note
   if (total >= CAN_LIMIT) {
     note.classList.add('warning');
-    note.innerHTML = 'You\'ve reached the 2-can limit for the Starter Plan. Need more? <a href="#">Upgrade your plan</a>';
+    note.innerHTML = 'You\'ve reached the 2-can limit for the Starter Plan. Need more? <a href="#">Upgrade Plan</a>';
   } else {
     note.classList.remove('warning');
-    note.innerHTML = 'Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade your plan</a>';
+    note.innerHTML = 'Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade Plan</a>';
   }
 }
 
