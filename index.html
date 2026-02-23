@@ -841,6 +841,24 @@
     <div class="form-row full">
       <div class="form-group">
         <label class="property-field-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6"/><path d="M5 9h14"/><path d="M5 20h14"/></svg>
+          Waste Provider
+        </label>
+        <select class="form-select" id="wasteProviderSelect" onchange="handleProviderChange()">
+          <option value="" disabled selected>Select your waste provider</option>
+          <option>Waste Management</option>
+          <option>Republic Services</option>
+          <option>Waste Connections</option>
+          <option>My City (Municipal Service)</option>
+          <option value="other">Other</option>
+        </select>
+        <input class="form-input" type="text" id="wasteProviderOther" placeholder='Enter provider name, or "I don&#39;t know - help me find"' style="display:none; margin-top: 8px;" />
+      </div>
+    </div>
+
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="property-field-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Trash and Recycle Day
         </label>
@@ -1106,6 +1124,18 @@ window.addEventListener('resize', updateStickyOffsets);
 
 let canCounts = { trash: 1, recycle: 1 };
 const CAN_LIMIT = 2;
+
+function handleProviderChange() {
+  const select = document.getElementById('wasteProviderSelect');
+  const otherInput = document.getElementById('wasteProviderOther');
+  if (select.value === 'other') {
+    otherInput.style.display = 'block';
+    otherInput.focus();
+  } else {
+    otherInput.style.display = 'none';
+    otherInput.value = '';
+  }
+}
 
 function adjustCan(type, delta) {
   const newVal = canCounts[type] + delta;
