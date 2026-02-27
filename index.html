@@ -152,6 +152,7 @@
     box-shadow: var(--shadow-card);
     display: none;
     animation: fadeIn 0.3s ease;
+    overflow: hidden;
   }
   .section-card.visible { display: block; }
   @keyframes fadeIn {
@@ -185,7 +186,7 @@
   /* Form elements */
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .form-row.full { grid-template-columns: 1fr; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .form-label { font-size: 13px; font-weight: 600; color: var(--cm-gray-500); }
   .form-input {
     padding: 12px 14px; border: 1px solid var(--cm-input-border);
@@ -194,6 +195,7 @@
     background: var(--cm-card-bg);
     transition: border-color 0.2s;
     outline: none;
+    width: 100%; box-sizing: border-box;
   }
   .form-input:focus { border-color: var(--cm-black); box-shadow: 0 0 0 3px rgba(10, 13, 21, 0.05); }
   .form-input::placeholder { color: var(--cm-text-muted); }
@@ -203,6 +205,7 @@
     font-family: inherit; color: var(--cm-text);
     background: var(--cm-card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 14px center;
     appearance: none; cursor: pointer; outline: none;
+    width: 100%; box-sizing: border-box;
   }
   .form-select:focus { border-color: var(--cm-black); box-shadow: 0 0 0 3px rgba(10, 13, 21, 0.05); }
 
@@ -302,6 +305,14 @@
   .stepper-btn:active { background: var(--cm-input-border); }
   .stepper-btn.disabled { color: var(--cm-border); cursor: not-allowed; }
   .stepper-btn.disabled:hover { background: var(--cm-page-bg); }
+  .stepper.shake { animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
   .stepper-value {
     flex: 1; text-align: center; font-size: 18px;
     font-weight: 600; color: var(--cm-black);
@@ -413,6 +424,7 @@
 
   /* Product table */
   .product-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  .product-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .product-table th {
     text-align: left; font-size: 11px; text-transform: uppercase;
     letter-spacing: 0.8px; color: var(--cm-text-muted); font-weight: 600;
@@ -436,18 +448,7 @@
   .billing-summary-row .label { color: var(--cm-gray-500); }
   .billing-summary-row .value { font-weight: 600; color: var(--cm-text); }
 
-  /* Promo code */
-  .promo-row {
-    display: flex; gap: 8px; margin-bottom: 20px;
-  }
-  .promo-row .form-input { flex: 1; }
-  .promo-btn {
-    padding: 12px 20px; background: var(--cm-page-bg);
-    border: 1px solid var(--cm-input-border); border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 600; color: var(--cm-gray-500);
-    cursor: pointer; font-family: inherit; transition: all 0.2s;
-  }
-  .promo-btn:hover { border-color: var(--cm-text-muted); color: var(--cm-text); }
+  /* Card entry */
 
   /* Rate disclaimer */
   .rate-disclaimer {
@@ -587,6 +588,16 @@
     .step-label { font-size: 9px; }
     .section-card { padding: 20px; }
     .main { padding: 20px 12px 80px; }
+    .product-table { font-size: 11px; }
+    .product-table th, .product-table td { padding: 8px 6px; }
+    .upsell-card { flex-wrap: wrap; gap: 10px; }
+    .billing-toggle-wrap { gap: 6px; }
+    .billing-option { padding: 8px 14px; font-size: 12px; }
+    .billing-product-group { padding: 14px; }
+    .card-entry { padding: 16px; }
+    .order-strip-inner { padding: 0 12px; font-size: 12px; }
+    .btn-row { flex-direction: column; gap: 8px; }
+    .btn-row .btn-back, .btn-row .btn-primary { width: 100%; }
   }
 </style>
 </head>
@@ -598,7 +609,7 @@
     <svg viewBox="0 0 281.2 281.2" style="height:32px;width:32px;"><defs><style>.cm-1{fill:#0a0d15;}.cm-2{fill:#fff;}</style></defs><g id="monkey"><g id="face_outline"><path class="cm-1" d="M272.1,90.1c-7.6-13.8-21.6-17.8-35.9-11.3-4.5,2.1-9.3,3.5-14,5.2-.8-1.2-1.3-1.9-1.7-2.7-11-18.8-26-33.1-46-42-1.8-.8-3.4-2.5-4.8-4-12.4-14.6-28.8-23.6-45.7-31.8,6.8,7.5,14.4,14.3,19,24.1-9-3.8-17.2-7.3-25.4-10.8-.1.3-.2.5-.4.9,4.4,4,8.8,7.9,13.2,11.9-.3.3-.5.6-.8.9-6.6-.9-13.3-1.8-19.9-2.7,1.6,1.9,3.4,2.6,5.1,3.4,1.8.8,3.5,1.9,6.1,3.4-28.5,7.7-48,24.9-62,49.4-3.6-1.7-7.1-3.1-10.3-4.8-15.3-8.1-30.1-3.8-38.1,11.5-1.9,3.8-3.5,7.9-4.3,12.1-4.7,27.2,5.6,48.6,25.8,66.1,2.8,2.4,4.9,1.6,6.6-1.1,1.9-2.9,1.3-5.5-1.9-7.1-14.6-7.5-23-36.3-17.4-53.3,2.4-7.3,8.5-11.1,15.7-10.1,6.4.9,13.6,8.5,13.1,15-.7,9.8-2.2,19.6-3.4,29.3-.5.1-.9.3-1.4.5-2.6-8.5-5.2-16.9-7.6-25.4-1.3-4.6-3.8-6.5-6.9-4-1.6,1.3-2.8,4.5-2.5,6.6,2.5,15.8,9.6,29.5,19.3,41.9,3.8,4.9,5.1,9.9,2.7,16.3-8.5,23-4.8,44.6,10.2,63.7,17.7,22.6,42,33.5,70,36.1,32.7,3.1,62.5-4.6,86.6-27.8,19.9-19.2,27.4-42.6,18.4-69.5-2.9-8.8-1.7-15.2,3.6-22.1,8.9-11.5,14.6-24.5,17.2-38.9.7-3.8-.4-6.6-4.3-7.2-4.2-.7-4.6,2.6-5.5,5.7-2.1,7.8-4.6,15.5-6.9,23.2-.5-.1-1.1-.3-1.6-.5-.5-6.2-.5-12.5-1.7-18.5-1.1-5.6-.8-10,2.4-14.9,4.8-7.3,9.4-10.3,17-9.1,6.3,1,11.3,6,11.9,14,1.5,19.4-1.7,37.2-19.2,49.3-2.9,2-2.9,4.4-1.1,6.9,1.8,2.7,4.3,3.4,6.6.7,5.9-6.7,12.8-12.8,17.2-20.4,10.9-18.6,13.7-38.4,2.8-58.2ZM181.9,220.2c-9,10.2-20.8,16.8-32.8,22.5-16.5,7.9-37.5,2.2-47.5-11.5,33.1,8.7,62.3,3,87.7-20.1-2.4,3.1-4.8,6.1-7.4,9ZM212.6,145.5c-3.1,7.2-7.8,13.9-14,19.4-1.1,1-2,3.3-1.7,4.8.6,1.7,1,3.4,1.3,5,2.3,11.8-2.3,21.3-11.6,29.4-1.6,1.4-3.3,2.7-4.9,4,0,0,0,0,0,0-.2.1-.4.3-.6.5-1,.8-2.1,1.5-3.1,2.2-.4.3-.9.6-1.3.8-1.9,1.2-3.8,2.3-5.7,3.4-8.9,3.6-18.1,6.2-27.6,7.6-10.8,1.7-22.1,1.9-32.5.7-1.5-.2-2.9-.4-4.4-.6-8.6-1.9-15-5.5-19.7-10.3-4.5-4.7-7.3-10.5-8.7-16.9-1.5-6.4-1.5-13.4-.4-20.6.1-.7.2-1.5.3-2.2.3-1.9.5-3.5.3-4.9-.2-.7-.4-1.4-.8-2-.6-.9-1.4-1.9-2.5-2.9-8.1-7.1-13.2-17-15.3-27.5-3.7-17.6,1.1-37.2,14.3-49.5,2-1.9,4.1-3.5,6.2-4.9,2.1-1.4,4.3-2.5,6.6-3.4.6-.2,1.1-.4,1.7-.6,1.2-.4,2.3-.7,3.5-1,0,0,0,0,0,0,9.9-2.4,20.3-.7,29.2,4.9,4.9,3.1,9.4,7.4,13,12.9.5.8,1.1,1.6,1.6,2.4,0,0,.1.2.2.2.5.7.9,1.4,1.4,2.1,2.7-3.2,5-6.6,7.6-9.7.9-1,1.8-2,2.8-2.9,1-.9,2-1.8,3-2.6,0,0,0,0,0,0,1-.8,2.1-1.6,3.2-2.3,1.6-1,3.2-2,4.9-2.7.9-.4,1.7-.8,2.6-1.1h0c.2,0,.4-.2.6-.2,1-.3,2-.7,3-.9.8-.2,1.5-.4,2.3-.5,16.9-3.3,34.8,5.5,44,24.3,1.9,3.8,3.3,7.7,4.2,11.7,2.8,11.4,1.7,23.3-2.9,34Z"/><path class="cm-2" d="M211.5,100.4c-9.2-18.7-27.1-27.6-44-24.3-.8.1-1.5.3-2.3.5-1,.3-2,.6-3,.9-.2,0-.4.2-.6.2h0c-.9.3-1.8.7-2.6,1.1-1.7.8-3.3,1.7-4.9,2.7-1.1.7-2.1,1.5-3.2,2.3,0,0,0,0,0,0-1,.8-2,1.7-3,2.6-1,.9-1.9,1.9-2.8,2.9-2.6,3-5,6.4-7.6,9.7-.4-.7-.9-1.4-1.4-2.1,0,0-.1-.2-.2-.2-.5-.8-1-1.6-1.6-2.4-3.7-5.5-8.1-9.8-13-12.9-8.9-5.6-19.3-7.4-29.2-4.9,0,0,0,0,0,0-1.2.3-2.3.6-3.5,1-.6.2-1.2.4-1.7.6-2.2.9-4.4,2-6.6,3.4-2.2,1.4-4.3,3-6.2,4.9-13.1,12.2-17.9,31.6-14.5,49,2.1,10.5,7.2,20.3,15.3,27.5,1.1,1,2,1.9,2.5,2.9.4.7.6,1.3.8,2,.4,1.6.2,3.3-.1,5.4-.1.7-.2,1.5-.3,2.2-1,7-1,13.8.3,20,1.4,6.4,4.2,12.3,8.7,16.9,4.6,4.8,11.1,8.4,19.7,10.3,1.5.2,2.9.4,4.4.6,10.4,1.2,21.6,1,32.5-.7,9.5-1.5,18.7-4,27.6-7.6,1.9-1,3.8-2.1,5.7-3.4.4-.2,2.9-2,4.4-3,.2-.2.5-.3.6-.5,0,0,0,0,0,0,1.7-1.3,3.3-2.6,4.9-4,9.3-8.1,14-17.6,11.6-29.4-.3-1.5-.7-3-1.2-4.6,0-.1,0-.3,0-.4-.2-1.5.6-3.8,1.7-4.8,6.2-5.6,10.9-12.2,14-19.4,4.6-10.7,5.7-22.5,2.9-34-.9-3.8-2.3-7.5-4.1-11.2Z"/><path class="cm-2" d="M101.5,231.3c10,13.7,31,19.4,47.5,11.5,12-5.8,23.9-12.4,32.8-22.5,2.6-2.9,4.9-6,7.4-9-25.5,23.1-54.7,28.8-87.7,20.1Z"/></g><g id="Nostrils"><path class="cm-1" d="M157.7,176c0,.2-.2.5-.3.7,0,.1-.1.3-.2.5,0,.2-.2.3-.3.5-1.6,3-4.7,6.5-8.3,9.2-.6.5-1.2.9-1.8,1.3-.6.4-1.2.8-1.8,1.1,0,0,0,0,0,0-.8-1.2-1.6-2.5-2.5-3.8,2.3-2.1,4.6-3.8,6.4-5.9.5-.5.9-1.1,1.3-1.7.6-.9,1.2-1.8,1.8-2.8.6-1,1.2-2.1,1.9-3.2,1.3.4,2.6.7,3.7,1,.5.7.4,1.8,0,3.1Z"/><path class="cm-1" d="M129,190.2c-4.4-5.2-8.7-10.2-13.2-15.5.5-.4.9-.7,1.3-1,.4-.3.8-.6,1.2-.8s.7-.3,1-.5c.2,0,.3-.1.5-.1.3,0,.5,0,.8,0,.5,0,1,.4,1.5.9.2.2.5.6.7.9.1.2.2.4.3.6,1.7,3,4.1,5.9,6.8,8.1,3.1,2.4,2.7,4-.9,7.3Z"/></g><g id="eyes"><path class="cm-1" d="M172.9,102.7c-3.5,0-7,1.6-9.9,4.6-4,4.2-6,10.5-5.5,16.7,1,12.5,6.9,21.6,14.1,21.7.2,0,.3,0,.4,0,8.4-.2,15.1-9.6,15.3-21.2.3-11.9-6.2-21.7-14.5-21.9ZM171.6,127.8c-2.5,0-4.6-2.3-4.6-5.1s2-5.1,4.6-5.1,1.3.2,1.9.5c.9.4,1.7,1.2,2.1,2.2.4.7.6,1.6.6,2.4,0,2.8-2,5.1-4.6,5.1ZM182.8,123.9c-1.5-5.6-4.8-9.8-8.2-11.3-.2,0-.3-.2-.5-.3-2.8-1.2-5.5-.5-6.7-.2-2,.6-4,1.6-5.5,3.1-.3.3-.6.6-.8.9.8-2.6,2.1-5,3.9-6.9,2.3-2.5,5.1-3.8,7.8-3.7,6.7.1,12,8.7,11.8,19,0,2.3-.4,4.5-.9,6.5.1-2.2,0-4.7-.8-7.2Z"/><path class="cm-1" d="M104.4,102.7c-3.5,0-7,1.6-9.9,4.6-4,4.2-6,10.5-5.5,16.7,1,12.5,6.9,21.6,14.1,21.7.2,0,.3,0,.4,0,8.4-.2,15.1-9.6,15.3-21.2.3-11.9-6.2-21.7-14.5-21.9ZM103.1,127.8c-2.5,0-4.6-2.3-4.6-5.1s2-5.1,4.6-5.1,1.3.2,1.9.5c.9.4,1.7,1.2,2.1,2.2.4.7.6,1.6.6,2.4,0,2.8-2,5.1-4.6,5.1ZM114.3,123.9c-1.5-5.6-4.8-9.8-8.2-11.3-.2,0-.3-.2-.5-.3-2.8-1.2-5.5-.5-6.7-.2-2,.6-4,1.6-5.5,3.1-.3.3-.6.6-.8.9.8-2.6,2.1-5,3.9-6.9,2.3-2.5,5.1-3.8,7.8-3.7,6.7.1,12,8.7,11.8,19,0,2.3-.4,4.5-.9,6.5.1-2.2,0-4.7-.8-7.2Z"/></g></g></svg>
   </div>
   <div class="header-right">
-    checkouttesting&#64;gmail.com
+    jane.doe&#64;example.com
     <div class="header-avatar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </div>
@@ -648,7 +659,7 @@
   <!-- STEP 1: Contact Information -->
   <div class="trial-banner visible" id="trialBanner">
     <h2>15 Day Risk-Free Trial</h2>
-    <p>Enjoy two weeks of free service to see if CanMonkey is the right fit for you, no strings attached! If you choose to continue enjoying our service after your free trial ends, you will automatically be charged your monthly plan fee.</p>
+    <p>Try CanMonkey free for 15 days — no commitment. If you love it, your plan kicks in automatically. Cancel anytime before your trial ends and you won't be charged.</p>
   </div>
 
   <div class="section-card visible" id="step1">
@@ -680,16 +691,17 @@
     <!-- Notification Preferences — Selectable chips -->
     <div class="notif-section">
       <div class="notif-section-title">Notification Preferences</div>
-      <div class="chip-group full-width">
-        <button class="chip" onclick="this.classList.toggle('selected')">
+      <div class="chip-group full-width" id="notifChips">
+        <button class="chip selected" id="notifEmail" onclick="toggleNotif('notifEmail')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           Email
         </button>
-        <button class="chip selected" onclick="this.classList.toggle('selected')">
+        <button class="chip" id="notifSMS" onclick="toggleNotif('notifSMS')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           SMS
         </button>
       </div>
+      <div class="notif-warning" id="notifWarning" style="display:none; font-size: 12px; color: #dc2626; margin-top: 6px;">Please select at least one notification method.</div>
     </div>
 
     <!-- Business Registration — Expandable card -->
@@ -737,7 +749,7 @@
   <!-- STEP 2: Address -->
   <div class="section-card" id="step2">
     <div class="section-title">Service Address</div>
-    <div class="section-subtitle">Where should we pick up your cans?</div>
+    <div class="section-subtitle">Where should we service your cans?</div>
     <div class="form-row full">
       <div class="form-group">
         <label class="form-label">Address 1</label>
@@ -846,10 +858,10 @@
         </label>
         <select class="form-select" id="wasteProviderSelect" onchange="handleProviderChange()">
           <option value="" disabled selected>Select your waste provider</option>
+          <option>My City (Municipal Service)</option>
           <option>Waste Management</option>
           <option>Republic Services</option>
           <option>Waste Connections</option>
-          <option>My City (Municipal Service)</option>
           <option value="other">Other</option>
         </select>
         <input class="form-input" type="text" id="wasteProviderOther" placeholder='Enter provider name, or "I don&#39;t know - help me find"' style="display:none; margin-top: 8px;" />
@@ -899,10 +911,12 @@
     <div class="form-row full" style="margin-top: 16px;">
       <div class="form-group">
         <label class="form-label">Recycling Pickup Frequency</label>
-        <select class="form-select">
+        <select class="form-select" id="recycleFreqSelect" onchange="handleRecycleFreqChange()">
           <option selected>Every week</option>
           <option>Every other week (alternating)</option>
+          <option value="other">Other</option>
         </select>
+        <input class="form-input" type="text" id="recycleFreqOther" placeholder="Enter recycling frequency" style="display:none; margin-top: 8px;" />
       </div>
     </div>
 
@@ -927,8 +941,8 @@
       <div class="upsell-cards">
         <div class="upsell-card" id="cleaningCard" onclick="toggleUpsell('cleaning')">
           <div class="upsell-card-left">
-            <div class="upsell-card-name" id="cleaningCardName">🧼 Quarterly Can Cleaning</div>
-            <div class="upsell-card-desc">Keep your cans fresh &amp; sanitized every quarter</div>
+            <div class="upsell-card-name" id="cleaningCardName">🧼 Can Cleaning</div>
+            <div class="upsell-card-desc">Keep your cans fresh &amp; sanitized year-round</div>
             <div class="upsell-card-price">
               <span class="original">$18/mo</span>$9/mo
               <span class="save-badge">Save 50%</span>
@@ -936,14 +950,33 @@
           </div>
           <button class="upsell-btn add" id="cleaningBtn">Add</button>
         </div>
+        <div class="upsell-card" id="freshenerCard" onclick="toggleFreshener()">
+          <div class="upsell-card-left">
+            <div class="upsell-card-name">🌿 Can Freshener</div>
+            <div class="upsell-card-desc">Stick-on fresheners for your outdoor trash cans · Ships to your door</div>
+            <div class="upsell-card-price">$4.99 per 2-pack</div>
+            <div id="freshenerQtyRow" style="display:none; margin-top: 8px; display:none; align-items:center; gap: 8px;">
+              <span style="font-size: 12px; color: var(--cm-gray-500);">Qty (2-packs):</span>
+              <input type="number" id="freshenerCount" min="1" max="20" value="1" onchange="adjustFreshener()" oninput="adjustFreshener()" style="width: 64px; height: 32px; border: 1px solid var(--cm-input-border); border-radius: var(--radius-sm); text-align: center; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; color: var(--cm-black); background: #fff;" onclick="event.stopPropagation();" />
+              <span id="freshenerTotal" style="font-size: 13px; font-weight: 600; color: var(--cm-black);">$4.99</span>
+            </div>
+          </div>
+          <div style="text-align:right; min-width: 60px;">
+            <button class="upsell-btn add" id="freshenerBtn" style="margin-bottom: 4px;">Add</button>
+            <div><span style="font-size: 10px; font-weight: 600; color: var(--cm-gray-500); background: var(--cm-page-bg); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">One-time</span></div>
+          </div>
+        </div>
         <div class="upsell-card" id="wasteCard" onclick="toggleUpsell('waste')">
           <div class="upsell-card-left">
             <div class="upsell-card-name">🗑️ OnDemand Waste Removal</div>
             <div class="upsell-card-desc">Start fresh — one-time trash removal before your service begins</div>
-            <div class="upsell-card-price">Phoenix: $59 · Other areas: $89</div>
-            <div class="upsell-card-details">Includes 1st can · +$25/extra can · +$5/bag</div>
+            <div class="upsell-card-price">$89 first can</div>
+            <div class="upsell-card-details">+$25/extra can · +$5/bag</div>
           </div>
-          <button class="upsell-btn add" id="wasteBtn">Add</button>
+          <div style="text-align:right; min-width: 60px;">
+            <button class="upsell-btn add" id="wasteBtn" style="margin-bottom: 4px;">Add</button>
+            <div><span style="font-size: 10px; font-weight: 600; color: var(--cm-gray-500); background: var(--cm-page-bg); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">One-time</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -961,6 +994,7 @@
         </button>
       </div>
 
+      <div class="product-table-wrap">
       <table class="product-table">
         <thead>
           <tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr>
@@ -975,6 +1009,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <hr class="section-divider">
@@ -1005,12 +1040,6 @@
   <div class="section-card" id="step5">
     <div class="section-title">Payment Information</div>
     <div class="section-subtitle">Enter your payment details to start your free trial.</div>
-
-    <!-- Promo code -->
-    <div class="promo-row">
-      <input class="form-input" type="text" placeholder="Enter Promo Code" />
-      <button class="promo-btn">Apply</button>
-    </div>
 
     <!-- Card entry -->
     <div class="card-entry">
@@ -1096,10 +1125,11 @@
       <span class="order-strip-plan" id="stripPlan">Starter Plan</span>
       <span class="order-strip-dot">·</span>
       <span class="order-strip-rate" id="stripRate">$45/mo</span>
+      <span class="order-strip-discount" id="stripDiscount" style="display:none; font-size: 11px; font-weight: 600; color: #059669; background: rgba(5, 150, 105, 0.1); padding: 2px 8px; border-radius: 10px; margin-left: 6px;">−$9/mo</span>
     </div>
     <div class="order-strip-right">
       <span class="order-strip-due-label">Due today</span>
-      <span class="order-strip-due">$0.00</span>
+      <span class="order-strip-due" id="stripDue">$0.00</span>
     </div>
   </div>
 </div>
@@ -1125,6 +1155,25 @@ window.addEventListener('resize', updateStickyOffsets);
 let canCounts = { trash: 1, recycle: 1 };
 const CAN_LIMIT = 2;
 
+function toggleNotif(id) {
+  const chip = document.getElementById(id);
+  const emailChip = document.getElementById('notifEmail');
+  const smsChip = document.getElementById('notifSMS');
+  const warning = document.getElementById('notifWarning');
+
+  // If this is the only one selected, don't allow deselect
+  const otherSelected = (id === 'notifEmail') ? smsChip.classList.contains('selected') : emailChip.classList.contains('selected');
+  if (chip.classList.contains('selected') && !otherSelected) {
+    warning.style.display = 'block';
+    chip.style.animation = 'shake 0.4s ease';
+    setTimeout(() => { chip.style.animation = ''; }, 400);
+    return;
+  }
+
+  chip.classList.toggle('selected');
+  warning.style.display = 'none';
+}
+
 function handleProviderChange() {
   const select = document.getElementById('wasteProviderSelect');
   const otherInput = document.getElementById('wasteProviderOther');
@@ -1137,12 +1186,75 @@ function handleProviderChange() {
   }
 }
 
+function handleRecycleFreqChange() {
+  const select = document.getElementById('recycleFreqSelect');
+  const otherInput = document.getElementById('recycleFreqOther');
+  if (select.value === 'other') {
+    otherInput.style.display = 'block';
+    otherInput.focus();
+  } else {
+    otherInput.style.display = 'none';
+    otherInput.value = '';
+  }
+}
+
+let freshenerCount = 0;
+let freshenerAdded = false;
+
+function toggleFreshener() {
+  freshenerAdded = !freshenerAdded;
+  const card = document.getElementById('freshenerCard');
+  const btn = document.getElementById('freshenerBtn');
+  const qtyRow = document.getElementById('freshenerQtyRow');
+
+  if (freshenerAdded) {
+    card.classList.add('added');
+    btn.className = 'upsell-btn added';
+    btn.textContent = '✓ Added';
+    qtyRow.style.display = 'flex';
+    freshenerCount = parseInt(document.getElementById('freshenerCount').value) || 1;
+    document.getElementById('freshenerCount').value = freshenerCount;
+    document.getElementById('freshenerTotal').textContent = '$' + (freshenerCount * 4.99).toFixed(2);
+  } else {
+    card.classList.remove('added');
+    btn.className = 'upsell-btn add';
+    btn.textContent = 'Add';
+    qtyRow.style.display = 'none';
+    freshenerCount = 0;
+  }
+  updateProductTable();
+}
+
+function adjustFreshener() {
+  const input = document.getElementById('freshenerCount');
+  let val = parseInt(input.value) || 1;
+  if (val < 1) val = 1;
+  input.value = val;
+  freshenerCount = val;
+  document.getElementById('freshenerTotal').textContent = '$' + (val * 4.99).toFixed(2);
+  updateProductTable();
+}
+
 function adjustCan(type, delta) {
   const newVal = canCounts[type] + delta;
   const otherType = type === 'trash' ? 'recycle' : 'trash';
   const total = newVal + canCounts[otherType];
 
-  if (newVal < 0 || newVal > CAN_LIMIT || total > CAN_LIMIT) return;
+  if (newVal < 0) return;
+  if (newVal > CAN_LIMIT || total > CAN_LIMIT) {
+    // Shake the stepper that was clicked
+    const steppers = document.querySelectorAll('.stepper');
+    const stepper = type === 'trash' ? steppers[0] : steppers[1];
+    stepper.classList.remove('shake');
+    void stepper.offsetWidth; // force reflow to restart animation
+    stepper.classList.add('shake');
+    // Flash the limit note
+    const note = document.getElementById('canLimitNote');
+    note.style.transition = 'background 0.2s';
+    note.style.background = 'rgba(239, 68, 68, 0.08)';
+    setTimeout(() => { note.style.background = ''; }, 800);
+    return;
+  }
 
   canCounts[type] = newVal;
   document.getElementById(type + 'Count').textContent = newVal;
@@ -1255,11 +1367,8 @@ function updateProductTable() {
   const isQuarterly = currentBilling === 'quarterly';
   const planPrice = isQuarterly ? '$45' : '$54';
   const planLabel = isQuarterly ? 'Quarterly Pay' : 'Monthly Pay';
-  const cleaningLabel = isQuarterly ? 'Quarterly' : 'Monthly';
 
-  // Sync upsell card title with billing cadence
-  const cleaningCardName = document.getElementById('cleaningCardName');
-  if (cleaningCardName) cleaningCardName.textContent = `🧼 ${cleaningLabel} Can Cleaning`;
+  // No longer syncing card title with billing cadence
 
   let html = `<tr>
     <td>Can-to-Curb Starter Plan | ${planLabel} (${planPrice}/month)<br><span class="trial-note">(free during trial)</span></td>
@@ -1268,7 +1377,7 @@ function updateProductTable() {
 
   if (upsells.cleaning) {
     html += `<tr class="upsell-row">
-      <td>🧼 ${cleaningLabel} Can Cleaning ($9/month)</td>
+      <td>🧼 Can Cleaning ($9/month)</td>
       <td>$0.00</td><td>1</td><td>$0.00</td>
     </tr>`;
   }
@@ -1280,8 +1389,16 @@ function updateProductTable() {
     </tr>`;
   }
 
+  if (freshenerCount > 0) {
+    const freshTotal = (freshenerCount * 4.99).toFixed(2);
+    html += `<tr class="upsell-row">
+      <td>🌿 Can Freshener (2-pack) × ${freshenerCount}<br><span class="trial-note">(one-time charge)</span></td>
+      <td>$4.99</td><td>${freshenerCount}</td><td>$${freshTotal}</td>
+    </tr>`;
+  }
+
   html += `<tr class="total-row">
-    <td colspan="3">Total Due Today:</td><td>$0.00</td>
+    <td colspan="3">Total Due Today:</td><td>$${freshenerCount > 0 ? (freshenerCount * 4.99).toFixed(2) : '0.00'}</td>
   </tr>`;
 
   tbody.innerHTML = html;
@@ -1296,6 +1413,23 @@ function updateProductTable() {
   // Update sticky order strip
   const stripRate = document.getElementById('stripRate');
   if (stripRate) stripRate.textContent = '$' + totalMonthly + '/mo';
+
+  // Update strip due today with freshener total
+  const stripDue = document.getElementById('stripDue');
+  const dueToday = freshenerCount > 0 ? (freshenerCount * 4.99).toFixed(2) : '0.00';
+  if (stripDue) stripDue.textContent = '$' + dueToday;
+
+  // Show/hide discount badge on strip when cleaning is added
+  const stripDiscount = document.getElementById('stripDiscount');
+  if (stripDiscount) {
+    const savingsAmt = upsells.cleaning ? 9 : 0;
+    if (savingsAmt > 0) {
+      stripDiscount.textContent = '−$' + savingsAmt + '/mo savings';
+      stripDiscount.style.display = 'inline';
+    } else {
+      stripDiscount.style.display = 'none';
+    }
+  }
 }
 
 function setBilling(type) {
