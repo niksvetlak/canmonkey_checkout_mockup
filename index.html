@@ -1170,16 +1170,6 @@ function updateStickyOffsets() {
 updateStickyOffsets();
 window.addEventListener('resize', updateStickyOffsets);
 
-// Hide same-day card by default, show only if pickup day is tomorrow
-document.getElementById('onboardingCard').style.display = 'none';
-checkSameDayEligibility();
-
-// Run cleaning availability check on load
-checkCleaningAvailability();
-
-// Tick the same-day timer every minute
-setInterval(checkSameDayEligibility, 60000);
-
 let canCounts = { trash: 1, recycle: 1 };
 const CAN_LIMIT = 2;
 
@@ -1563,6 +1553,12 @@ function checkSameDayEligibility() {
     updateProductTable();
   }
 }
+
+// Init — run after all declarations
+document.getElementById('onboardingCard').style.display = 'none';
+checkSameDayEligibility();
+checkCleaningAvailability();
+setInterval(checkSameDayEligibility, 60000);
 
 function setBilling(type) {
   document.getElementById('quarterlyBtn').classList.toggle('active', type === 'quarterly');
