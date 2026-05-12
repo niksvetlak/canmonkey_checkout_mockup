@@ -4,52 +4,109 @@ Proposed 5-step checkout flow for the Can-to-Curb subscription service. Built as
 
 ---
 
-## Flow Overview
+## How Spencer's Current Checkout Works
 
-| Step | Screen | Key Data Collected |
-|------|--------|--------------------|
-| 1 | Contact Information | Name, email, phone, notification prefs, business registration |
-| 2 | Service Address | Service address, billing address, property type |
-| 3 | Property Information | Waste provider, pickup day, can count, recycling frequency |
-| 4 | Review & Add-Ons | Upsell selections, billing cadence |
-| 5 | Payment | Card/bank details, terms agreement |
+Understanding the existing backend flow is critical for wiring up this mockup correctly. Each step already triggers backend operations:
+
+| Step | Screen | What Gets Created |
+|------|--------|-------------------|
+| 1 | Contact Information | Customer + User record in CanMonkey · Stripe Customer |
+| 2 | Service Address | — (address saved to customer) |
+| 3 | Property Information | Property record in CanMonkey (linked to customer) |
+| 4 | Review & Add-Ons | — (selections held in session) |
+| 5 | Payment | Stripe Subscription (with property metadata) · one-time charges |
+
+**Key implication:** By the end of Step 1, a CanMonkey customer and Stripe customer already exist. This means the service area check at Step 2 can flag the existing customer as `waitlisted` rather than creating a separate lead — no duplicate records.
 
 ---
 
-## Backend Integration Points
+## Step-by-Step Backend Operations
 
-### 1. Service Market Check (Step 2 — City/ZIP)
-**Current behavior:** Checks the entered city against a hardcoded list of Phoenix metro cities.
+### Step 1 — Contact Information
+1. Create **User + Customer** record in CanMonkey database
+2. Create **Stripe Customer** (`stripe_customer_id` saved to CanMonkey customer record)
+3. Save notification preferences (email / SMS) to customer record
+4. If `is_business: true`, save company name and type (affects invoicing format)
 
-**Production:** Replace with a real market lookup by ZIP code (more reliable than city name).
+---
+
+### Step 2 — Service Address
+1. **Validate address** (Google Places Autocomplete or USPS) before allowing Continue
+2. **Run service area geo check** against Spencer's triangular service area checker
+3. **If in area:** Save address to customer record, proceed to Step 3
+4. **If out of area:**
+   - Save address to customer record
+   - Flag customer as `waitlisted` in CanMonkey
+   - POST to n8n webhook → Monday.com Leads board with `Waitlisted` tag
+   - Show waitlist confirmation screen — skip Steps 3–5 entirely
+   - Do NOT create a property record
 
 ```
-GET /api/markets/availability?zip=XXXXX
-Response: {
-  in_market: true,
-  market_id: "phoenix-metro",
-  services: {
-    can_cleaning: true,   // drives Can Cleaning upsell availability
-    same_day_onboarding: true
-  }
+POST /api/service-area/check
+Body: { zip: "XXXXX", address: "123 Main St", city: "...", state: "AZ" }
+Response: { in_area: true | false, area_id: "phoenix-north" | null }
+```
+
+**Important:** Never show "outside service area" language. Frame it as joining a waitlist — the customer record and address are already saved for when the area launches.
+
+**Existing n8n safety net:** The current flow (signup → team cancels → n8n checks address → Monday waitlist) should remain active as a fallback for any edge cases that bypass the frontend check.
+
+---
+
+### Step 3 — Property Information
+1. Create **Property** record in CanMonkey linked to the customer
+2. Save: waste provider, pickup day, trash can count, recycle can count, recycling frequency
+3. Property ID stored in session for subscription metadata at Step 5
+
+---
+
+### Step 4 — Review & Add-Ons
+No backend calls. All selections (plan, billing cadence, upsells) held in session until Step 5 submit.
+
+**Plan tiers:**
+
+| Plan | Cans | Collection Days | Quarterly | Monthly |
+|------|------|----------------|-----------|---------|
+| Starter | Up to 2 | 1/week | $45/mo | $54/mo |
+| Premium | Up to 4 | Up to 2/week | $59/mo | $69/mo |
+| Business | Up to 6 | Up to 2/week | $65/mo | $75/mo |
+
+---
+
+### Step 5 — Payment
+1. Mount **Stripe Elements** into card fields
+2. On submit:
+   - Confirm payment method → create `PaymentMethod` in Stripe
+   - Attach to Stripe Customer
+   - Create **Stripe Subscription** with:
+     - `trial_period_days: 15`
+     - Property ID in metadata
+     - Selected plan price ID (quarterly or monthly)
+   - Charge one-time items immediately (Can Freshener, Same-Day Onboarding) as separate PaymentIntents
+   - Flag Can Cleaning and OnDemand on the property record — **not charged at checkout**, billed separately after service is completed
+
+```
+POST /api/checkout/submit
+Body: {
+  customer_id: "cm_xxx",
+  property_id: "prop_xxx",
+  plan: { price_id: "price_xxx", billing_cadence: "quarterly" | "monthly" },
+  upsells: {
+    same_day_onboarding: { enrolled: true },
+    can_freshener: { enrolled: true, quantity: 2 },
+    can_cleaning: { enrolled: true },
+    ondemand_waste_removal: { enrolled: true }
+  },
+  payment_method_id: "pm_xxx"
 }
 ```
 
-**Drives:**
-- Can Cleaning card: shows `Add` button if `can_cleaning: true`, `Waitlist` button if false
-- Should trigger on ZIP field blur, not city name
-
 ---
 
-### 2. Same-Day Onboarding Eligibility (Step 4)
+## Additional Integration Points
 
-**Current behavior:** Card is shown only if:
-1. Pickup day is within 3 days from today
-2. Current local time < 3:00 PM
-
-If pickup is tomorrow, shows a live countdown. If 2–3 days out, shows a static message. Card description updates dynamically to reflect the actual selected pickup day. Card auto-hides and removes from cart if conditions are no longer met (checked every 60s).
-
-**Production:** Cutoff time and timezone should come from the route schedule API, not be hardcoded. Do not use browser local time — derive timezone from the property's service address.
+### Same-Day Onboarding Eligibility (Step 4)
+Card is shown only if pickup day is within 3 days **and** current time < 3:00 PM. Cutoff and timezone should come from the route schedule API — do not rely on browser local time.
 
 ```
 GET /api/routes/same-day-eligibility?zip=XXXXX
@@ -61,128 +118,24 @@ Response: {
 }
 ```
 
----
-
-### 3. Upsell Products
-
-All four upsells need corresponding Stripe products/prices. One-time items should be added as separate line items; the subscription plan is the primary recurring charge.
-
-| Upsell | Type | Price | Stripe |
-|--------|------|-------|--------|
-| ⚡ Same-Day Onboarding | One-time | $9.99 | One-time payment intent |
-| 🌿 Can Freshener | One-time | $9.99/2-pack (qty selector) | One-time payment intent |
-| 🧼 Can Cleaning | Bi-annual, billed per service | $59/cleaning | Triggered separately post-service |
-| 🗑️ OnDemand Waste Removal | One-time, billed post-service | $59 first can + $25/extra | Triggered separately post-service |
-
-**Notes:**
-- Can Cleaning and OnDemand are not charged at checkout — they are flagged on the customer record and billed separately after the service is completed
-- Can Freshener and Same-Day Onboarding are charged at checkout as one-time items
-- Can Cleaning should only be offered if `services.can_cleaning: true` from the market check
+Card description updates dynamically based on days until pickup. Card auto-removes from cart if conditions are no longer met (checked every 60s).
 
 ---
 
-### 4. Subscription Plan & Billing Cadence (Step 4)
+### Can Cleaning Availability (Step 4)
+Currently limited to Phoenix metro. Card shows `Add` for in-market customers and `Waitlist` for others. Availability should be returned from the service area check at Step 2 so it doesn't require a separate call.
 
-**Current behavior:** Toggle between Quarterly ($45/mo) and Monthly ($54/mo). Quarterly is default.
-
-**Production:** Pull plan pricing from Stripe Products API so prices don't need to be hardcoded.
-
-```
-GET /api/plans/starter
-Response: {
-  name: "Can-to-Curb Starter Plan",
-  monthly_price_id: "price_xxx",
-  quarterly_price_id: "price_xxx",
-  monthly_rate: 54,
-  quarterly_rate: 45,
-  trial_days: 15
-}
-```
+Add `can_cleaning_available: true | false` to the service area check response.
 
 ---
 
-### 5. Trial Period
-**Current behavior:** 15-day trial displayed throughout. "Total Due Today" is $0.00 for subscription items. Trial end date is hardcoded as "March 7, 2026."
-
-**Production:** Calculate trial end date dynamically as `signup_date + 15 days`. Pass `trial_period_days: 15` to Stripe subscription creation. Display the actual calculated end date on Step 4 billing summary and Step 5 submit button subtext.
+### Plan Pricing
+Pull from Stripe Products API — do not hardcode rates. Store price IDs per plan per cadence.
 
 ---
 
-### 6. Service Area Check (Step 2 — after address entry)
-
-**Overview:** After the customer submits their address on Step 2, run a silent geo check against Spencer's triangular service area checker. Do not block or reject the customer mid-checkout — instead, branch the flow based on the result.
-
-**When to trigger:** On "Continue" click at the end of Step 2, before navigating to Step 3.
-
-**If in service area:** Proceed normally to Step 3.
-
-**If outside service area:** Skip Steps 3–5 entirely. Show a waitlist confirmation screen in place of the checkout with messaging like:
-> "We're not in your area yet — but we're growing fast. We've added you to the waitlist and will notify you the moment we launch near you."
-
-By end of Step 2, you already have everything needed to create the lead: name, email, phone, and service address.
-
-```
-POST /api/service-area/check
-Body: { zip: "XXXXX", address: "123 Main St", city: "...", state: "AZ" }
-Response: { in_area: true | false, area_id: "phoenix-north" | null }
-```
-
-**If out of area — lead capture flow:**
-1. POST lead to n8n webhook (or directly to Monday.com Leads board)
-2. Tag as `Waitlisted`
-3. Show waitlist confirmation screen — do not proceed to payment
-
-**Existing n8n flow:** The current flow (signup → team cancels → n8n checks address → Monday waitlist) should remain as a safety net for any signups that bypass the frontend check. Long-term it can be deprecated once the frontend check is reliable.
-
-**Important:** Never show "outside service area" language at checkout. Frame it as joining a waitlist — the lead is still valuable.
-
----
-
-### 7. Address Validation (Step 2 — before service area check)
-**Current behavior:** Free-text input, no validation.
-
-**Production:** Recommend Google Places Autocomplete or USPS address validation to ensure accurate ZIP/city data before the market check runs.
-
----
-
-### 8. Stripe Checkout / Payment (Step 5)
-
-The payment form is a mockup only — no Stripe.js is wired up.
-
-**Production implementation:**
-1. On load of Step 5, create a Stripe `SetupIntent` or `PaymentIntent`
-2. Mount Stripe Elements into the card fields
-3. On submit: confirm the payment method, create the customer, attach the subscription with trial, and add any one-time charges (Freshener, Same-Day Onboarding) as additional payment intent line items
-4. Can Cleaning and OnDemand should be saved as flags on the customer record in your database — not charged at checkout
-
-```
-POST /api/checkout
-Body: {
-  contact: { first_name, last_name, email, phone, notify_email, notify_sms },
-  business: { is_business, company_name, company_type },
-  service_address: { address1, address2, city, state, zip, country, property_type },
-  billing_address: { same_as_service, ...fields },
-  property: { waste_provider, pickup_day, trash_cans, recycle_cans, recycle_frequency },
-  plan: { billing_cadence: "quarterly" | "monthly" },
-  upsells: {
-    same_day_onboarding: true,
-    can_freshener: { added: true, quantity: 2 },
-    can_cleaning: { waitlisted: false, enrolled: true },
-    ondemand_waste_removal: { enrolled: true }
-  },
-  payment_method_id: "pm_xxx"
-}
-```
-
----
-
-### 9. Business Registration (Step 1)
-If `is_business: true`, save `company_name` and `company_type` to the customer record. This may affect invoicing (B2B invoice format vs. residential receipt).
-
----
-
-### 10. Notification Preferences (Step 1)
-Customer selects Email and/or SMS. At least one must be selected (enforced in UI). Pass to your notification system on customer creation.
+### Trial Period
+Calculate trial end date as `signup_date + 15 days`. Pass `trial_period_days: 15` to Stripe subscription. Display calculated end date on Step 4 billing summary and Step 5 submit button.
 
 ---
 
@@ -190,8 +143,8 @@ Customer selects Email and/or SMS. At least one must be selected (enforced in UI
 
 | Location | Current Value | Replace With |
 |----------|--------------|--------------|
-| Phoenix metro city list | Hardcoded array in JS | Market availability API by ZIP |
-| Same-day cutoff time | `14:00` hardcoded | Route schedule API |
+| Phoenix metro city list | Array in JS | Service area geo check API by ZIP |
+| Same-day cutoff | `15:00` hardcoded | Route schedule API |
 | Trial end date | "March 7, 2026" | `signup_date + 15 days` |
 | Quarterly rate | `$45` | Stripe plan API |
 | Monthly rate | `$54` | Stripe plan API |
