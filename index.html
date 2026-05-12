@@ -958,7 +958,7 @@
         <div class="upsell-card" id="onboardingCard" onclick="toggleUpsell('onboarding')">
           <div class="upsell-card-left">
             <div class="upsell-card-name">⚡ Same-Day Onboarding <span style="font-size: 10px; font-weight: 700; color: #b45309; background: rgba(180,83,9,0.08); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Today Only</span></div>
-            <div class="upsell-card-desc">Pickup tomorrow? We'll add you to tonight's outgoing route so you don't miss your very first collection.</div>
+            <div class="upsell-card-desc" id="onboardingDesc">Pickup tomorrow? We'll add you to tonight's outgoing route so you don't miss your very first collection.</div>
             <div class="upsell-card-price">$9.99</div>
             <div id="sameDayTimer" style="font-size: 12px; font-weight: 600; color: #b45309; margin-top: 6px;"></div>
           </div>
@@ -1566,16 +1566,21 @@ function checkSameDayEligibility() {
   const isEligible = daysUntil <= 3 && isBeforeCutoff;
   card.style.display = isEligible ? 'flex' : 'none';
 
-  if (isEligible && timerEl) {
+  if (isEligible) {
+    const descEl = document.getElementById('onboardingDesc');
     if (daysUntil === 1) {
-      const cutoff = new Date();
-      cutoff.setHours(15, 0, 0, 0);
-      const msLeft = cutoff - now;
-      const hoursLeft = Math.floor(msLeft / 3600000);
-      const minsLeft = Math.floor((msLeft % 3600000) / 60000);
-      timerEl.textContent = `⏱ ${hoursLeft}h ${minsLeft}m left to make tonight's route`;
+      if (descEl) descEl.textContent = "Pickup tomorrow? We'll add you to tonight's outgoing route so you don't miss your very first collection.";
+      if (timerEl) {
+        const cutoff = new Date();
+        cutoff.setHours(15, 0, 0, 0);
+        const msLeft = cutoff - now;
+        const hoursLeft = Math.floor(msLeft / 3600000);
+        const minsLeft = Math.floor((msLeft % 3600000) / 60000);
+        timerEl.textContent = `⏱ ${hoursLeft}h ${minsLeft}m left to make tonight's route`;
+      }
     } else {
-      timerEl.textContent = `⏱ Pickup in ${daysUntil} days — secure your spot before routes are finalized`;
+      if (descEl) descEl.textContent = `Pickup ${selected}? We'll get you on the route before your first collection so you're ready to go.`;
+      if (timerEl) timerEl.textContent = `⏱ Pickup in ${daysUntil} days — secure your spot before routes are finalized`;
     }
   }
 
