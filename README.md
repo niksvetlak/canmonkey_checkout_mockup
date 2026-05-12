@@ -41,52 +41,29 @@ Response: {
 
 ---
 
-### 2. Pickup Day (Step 3)
-**Current behavior:** Static day-of-week dropdown, defaults to Tuesday.
+### 2. Same-Day Onboarding Eligibility (Step 4)
 
-**Production:** Should be auto-populated from route data based on the service address. User may still need to confirm if multiple pickup days are available in their area.
-
-```
-GET /api/routes/pickup-day?zip=XXXXX
-Response: {
-  pickup_day: "Wednesday",   // day name
-  alternate_days: []         // if multiple options available
-}
-```
-
-**Drives:**
-- Pre-fills the pickup day dropdown
-- Feeds into Same-Day Onboarding eligibility check (see below)
-
----
-
-### 3. Same-Day Onboarding Eligibility (Step 4)
 **Current behavior:** Card is shown only if:
-1. Selected pickup day === tomorrow's day name
-2. Current local time < 2:00 PM
+1. Pickup day is within 3 days from today
+2. Current local time < 3:00 PM
 
-Card shows a live countdown to 2:00 PM. Hidden and removed from cart if either condition fails.
+If pickup is tomorrow, shows a live countdown. If 2–3 days out, shows a static message. Card description updates dynamically to reflect the actual selected pickup day. Card auto-hides and removes from cart if conditions are no longer met (checked every 60s).
 
-**Production:** The cutoff time varies by market and route schedule. Replace the hardcoded 2 PM with a value from the API. Also handle timezone correctly based on the property's location — do not use the browser's local time.
+**Production:** Cutoff time and timezone should come from the route schedule API, not be hardcoded. Do not use browser local time — derive timezone from the property's service address.
 
 ```
-GET /api/routes/same-day-eligibility?zip=XXXXX&date=YYYY-MM-DD
+GET /api/routes/same-day-eligibility?zip=XXXXX
 Response: {
   eligible: true,
-  cutoff_time: "14:00",       // 24h format
+  cutoff_time: "15:00",
   cutoff_timezone: "America/Phoenix",
   minutes_remaining: 87
 }
 ```
 
-**Drives:**
-- Show/hide Same-Day Onboarding card on Step 4
-- Countdown timer on the card ("Xh Xm left to make tonight's route")
-- Card auto-hides and removes from cart if cutoff passes while customer is on the page (interval check every 60s)
-
 ---
 
-### 4. Upsell Products
+### 3. Upsell Products
 
 All four upsells need corresponding Stripe products/prices. One-time items should be added as separate line items; the subscription plan is the primary recurring charge.
 
@@ -104,7 +81,7 @@ All four upsells need corresponding Stripe products/prices. One-time items shoul
 
 ---
 
-### 5. Subscription Plan & Billing Cadence (Step 4)
+### 4. Subscription Plan & Billing Cadence (Step 4)
 
 **Current behavior:** Toggle between Quarterly ($45/mo) and Monthly ($54/mo). Quarterly is default.
 
@@ -124,21 +101,21 @@ Response: {
 
 ---
 
-### 6. Trial Period
+### 5. Trial Period
 **Current behavior:** 15-day trial displayed throughout. "Total Due Today" is $0.00 for subscription items. Trial end date is hardcoded as "March 7, 2026."
 
 **Production:** Calculate trial end date dynamically as `signup_date + 15 days`. Pass `trial_period_days: 15` to Stripe subscription creation. Display the actual calculated end date on Step 4 billing summary and Step 5 submit button subtext.
 
 ---
 
-### 7. Address Validation (Step 2)
+### 6. Address Validation (Step 2)
 **Current behavior:** Free-text input, no validation.
 
 **Production:** Recommend Google Places Autocomplete or USPS address validation to ensure accurate ZIP/city data before the market check runs.
 
 ---
 
-### 8. Stripe Checkout / Payment (Step 5)
+### 7. Stripe Checkout / Payment (Step 5)
 
 The payment form is a mockup only — no Stripe.js is wired up.
 
@@ -169,12 +146,12 @@ Body: {
 
 ---
 
-### 9. Business Registration (Step 1)
+### 8. Business Registration (Step 1)
 If `is_business: true`, save `company_name` and `company_type` to the customer record. This may affect invoicing (B2B invoice format vs. residential receipt).
 
 ---
 
-### 10. Notification Preferences (Step 1)
+### 9. Notification Preferences (Step 1)
 Customer selects Email and/or SMS. At least one must be selected (enforced in UI). Pass to your notification system on customer creation.
 
 ---
