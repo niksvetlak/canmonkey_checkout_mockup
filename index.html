@@ -939,6 +939,17 @@
     <div class="upsell-area">
       <div class="upsell-area-title">Most customers add these — don't skip them</div>
       <div class="upsell-cards">
+        <div class="upsell-card" id="onboardingCard" onclick="toggleUpsell('onboarding')">
+          <div class="upsell-card-left">
+            <div class="upsell-card-name">⚡ Same-Day Onboarding <span style="font-size: 10px; font-weight: 700; color: #b45309; background: rgba(180,83,9,0.08); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Today Only</span></div>
+            <div class="upsell-card-desc">Pickup tomorrow? We'll add you to tonight's outgoing route so you don't miss your very first collection.</div>
+            <div class="upsell-card-price">$9.99</div>
+          </div>
+          <div style="text-align:right; min-width: 60px;">
+            <button class="upsell-btn add" id="onboardingBtn" style="margin-bottom: 4px;">Add</button>
+            <div><span style="font-size: 10px; font-weight: 600; color: var(--cm-gray-500); background: var(--cm-page-bg); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">One-time</span></div>
+          </div>
+        </div>
         <div class="upsell-card" id="freshenerCard" onclick="toggleFreshener()">
           <div class="upsell-card-left">
             <div class="upsell-card-name">🌿 Can Freshener <span style="font-size: 10px; font-weight: 700; color: #059669; background: rgba(5,150,105,0.1); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Most Popular</span></div>
@@ -1317,7 +1328,7 @@ function toggleBusiness() {
 }
 
 let currentStep = 1;
-let upsells = { cleaning: false, waste: false };
+let upsells = { onboarding: false, cleaning: false, waste: false };
 let currentBilling = 'quarterly';
 
 function goToStep(step) {
@@ -1351,7 +1362,13 @@ function goToStep(step) {
 function toggleUpsell(type) {
   upsells[type] = !upsells[type];
 
-  if (type === 'cleaning') {
+  if (type === 'onboarding') {
+    const card = document.getElementById('onboardingCard');
+    const btn = document.getElementById('onboardingBtn');
+    card.classList.toggle('added', upsells.onboarding);
+    btn.className = upsells.onboarding ? 'upsell-btn added' : 'upsell-btn add';
+    btn.textContent = upsells.onboarding ? '✓ Added' : 'Add';
+  } else if (type === 'cleaning') {
     const card = document.getElementById('cleaningCard');
     const btn = document.getElementById('cleaningBtn');
     card.classList.toggle('added', upsells.cleaning);
@@ -1381,6 +1398,13 @@ function updateProductTable() {
     <td>$0.00</td><td>1</td><td>$0.00</td>
   </tr>`;
 
+  if (upsells.onboarding) {
+    html += `<tr class="upsell-row">
+      <td>⚡ Same-Day Onboarding<br><span class="trial-note">(one-time charge)</span></td>
+      <td>$9.99</td><td>1</td><td>$9.99</td>
+    </tr>`;
+  }
+
   if (upsells.cleaning) {
     html += `<tr class="upsell-row">
       <td>🧼 Can Cleaning ($89/cleaning · bi-annual)<br><span class="trial-note">(billed separately after each service)</span></td>
@@ -1403,8 +1427,10 @@ function updateProductTable() {
     </tr>`;
   }
 
+  const onboardingTotal = upsells.onboarding ? 9.99 : 0;
+  const dueNow = (freshenerCount * 9.99) + onboardingTotal;
   html += `<tr class="total-row">
-    <td colspan="3">Total Due Today:</td><td>$${freshenerCount > 0 ? (freshenerCount * 9.99).toFixed(2) : '0.00'}</td>
+    <td colspan="3">Total Due Today:</td><td>$${dueNow > 0 ? dueNow.toFixed(2) : '0.00'}</td>
   </tr>`;
 
   tbody.innerHTML = html;
@@ -1422,7 +1448,7 @@ function updateProductTable() {
 
   // Update strip due today with freshener total
   const stripDue = document.getElementById('stripDue');
-  const dueToday = freshenerCount > 0 ? (freshenerCount * 9.99).toFixed(2) : '0.00';
+  const dueToday = dueNow > 0 ? dueNow.toFixed(2) : '0.00';
   if (stripDue) stripDue.textContent = '$' + dueToday;
 
   // Show/hide discount badge on strip when cleaning is added
