@@ -937,28 +937,17 @@
 
     <!-- Upsell cards -->
     <div class="upsell-area">
-      <div class="upsell-area-title">Enhance Your Service</div>
+      <div class="upsell-area-title">Most customers add these — don't skip them</div>
       <div class="upsell-cards">
-        <div class="upsell-card" id="cleaningCard" onclick="toggleUpsell('cleaning')">
-          <div class="upsell-card-left">
-            <div class="upsell-card-name" id="cleaningCardName">🧼 Can Cleaning</div>
-            <div class="upsell-card-desc">Keep your cans fresh &amp; sanitized year-round</div>
-            <div class="upsell-card-price">
-              <span class="original">$18/mo</span>$9/mo
-              <span class="save-badge">Save 50%</span>
-            </div>
-          </div>
-          <button class="upsell-btn add" id="cleaningBtn">Add</button>
-        </div>
         <div class="upsell-card" id="freshenerCard" onclick="toggleFreshener()">
           <div class="upsell-card-left">
-            <div class="upsell-card-name">🌿 Can Freshener</div>
-            <div class="upsell-card-desc">Stick-on fresheners for your outdoor trash cans · Ships to your door</div>
-            <div class="upsell-card-price">$4.99 per 2-pack</div>
+            <div class="upsell-card-name">🌿 Can Freshener <span style="font-size: 10px; font-weight: 700; color: #059669; background: rgba(5,150,105,0.1); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Most Popular</span></div>
+            <div class="upsell-card-desc">Odor-eliminating stick-ons for your outdoor cans — without these, trash smells linger between pickups and attract pests. Ships to your door.</div>
+            <div class="upsell-card-price">$9.99 per 2-pack</div>
             <div id="freshenerQtyRow" style="display:none; margin-top: 8px; display:none; align-items:center; gap: 8px;">
               <span style="font-size: 12px; color: var(--cm-gray-500);">Qty (2-packs):</span>
               <input type="number" id="freshenerCount" min="1" max="20" value="1" onchange="adjustFreshener()" oninput="adjustFreshener()" style="width: 64px; height: 32px; border: 1px solid var(--cm-input-border); border-radius: var(--radius-sm); text-align: center; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; color: var(--cm-black); background: #fff;" onclick="event.stopPropagation();" />
-              <span id="freshenerTotal" style="font-size: 13px; font-weight: 600; color: var(--cm-black);">$4.99</span>
+              <span id="freshenerTotal" style="font-size: 13px; font-weight: 600; color: var(--cm-black);">$9.99</span>
             </div>
           </div>
           <div style="text-align:right; min-width: 60px;">
@@ -966,11 +955,24 @@
             <div><span style="font-size: 10px; font-weight: 600; color: var(--cm-gray-500); background: var(--cm-page-bg); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">One-time</span></div>
           </div>
         </div>
+        <div class="upsell-card" id="cleaningCard" onclick="toggleUpsell('cleaning')">
+          <div class="upsell-card-left">
+            <div class="upsell-card-name" id="cleaningCardName">🧼 Can Cleaning <span style="font-size: 10px; font-weight: 700; color: #1d4ed8; background: rgba(29,78,216,0.08); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Recommended</span></div>
+            <div class="upsell-card-desc">High-pressure hot water wash + enzyme deodorizer treatment after every pickup. Kills odor-causing bacteria, eliminates residue that attracts pests, and keeps your cans sanitary year-round. Skipping regular cleaning leads to buildup that's nearly impossible to remove later.</div>
+            <div class="upsell-card-price">
+              <span class="original">$18/mo</span>$9/mo
+              <span class="save-badge">Save 50%</span>
+            </div>
+          </div>
+          <button class="upsell-btn add" id="cleaningBtn">Add</button>
+        </div>
         <div class="upsell-card" id="wasteCard" onclick="toggleUpsell('waste')">
           <div class="upsell-card-left">
             <div class="upsell-card-name">🗑️ OnDemand Waste Removal</div>
-            <div class="upsell-card-desc">Start fresh — one-time trash removal before your service begins</div>
-            <div class="upsell-card-price">$89 first can</div>
+            <div class="upsell-card-desc">Cans already overflowing? Your CanMonkey service doesn't start for a few days — don't let trash pile up in the meantime. We'll come out now and clear everything so you start fresh, odor-free, and pest-free from day one.</div>
+            <div class="upsell-card-price">
+              <span class="original">$89</span>$59 first can
+            </div>
             <div class="upsell-card-details">+$25/extra can · +$5/bag</div>
           </div>
           <div style="text-align:right; min-width: 60px;">
@@ -1214,7 +1216,7 @@ function toggleFreshener() {
     qtyRow.style.display = 'flex';
     freshenerCount = parseInt(document.getElementById('freshenerCount').value) || 1;
     document.getElementById('freshenerCount').value = freshenerCount;
-    document.getElementById('freshenerTotal').textContent = '$' + (freshenerCount * 4.99).toFixed(2);
+    document.getElementById('freshenerTotal').textContent = '$' + (freshenerCount * 9.99).toFixed(2);
   } else {
     card.classList.remove('added');
     btn.className = 'upsell-btn add';
@@ -1231,7 +1233,7 @@ function adjustFreshener() {
   if (val < 1) val = 1;
   input.value = val;
   freshenerCount = val;
-  document.getElementById('freshenerTotal').textContent = '$' + (val * 4.99).toFixed(2);
+  document.getElementById('freshenerTotal').textContent = '$' + (val * 9.99).toFixed(2);
   updateProductTable();
 }
 
@@ -1390,15 +1392,15 @@ function updateProductTable() {
   }
 
   if (freshenerCount > 0) {
-    const freshTotal = (freshenerCount * 4.99).toFixed(2);
+    const freshTotal = (freshenerCount * 9.99).toFixed(2);
     html += `<tr class="upsell-row">
       <td>🌿 Can Freshener (2-pack) × ${freshenerCount}<br><span class="trial-note">(one-time charge)</span></td>
-      <td>$4.99</td><td>${freshenerCount}</td><td>$${freshTotal}</td>
+      <td>$9.99</td><td>${freshenerCount}</td><td>$${freshTotal}</td>
     </tr>`;
   }
 
   html += `<tr class="total-row">
-    <td colspan="3">Total Due Today:</td><td>$${freshenerCount > 0 ? (freshenerCount * 4.99).toFixed(2) : '0.00'}</td>
+    <td colspan="3">Total Due Today:</td><td>$${freshenerCount > 0 ? (freshenerCount * 9.99).toFixed(2) : '0.00'}</td>
   </tr>`;
 
   tbody.innerHTML = html;
@@ -1416,7 +1418,7 @@ function updateProductTable() {
 
   // Update strip due today with freshener total
   const stripDue = document.getElementById('stripDue');
-  const dueToday = freshenerCount > 0 ? (freshenerCount * 4.99).toFixed(2) : '0.00';
+  const dueToday = freshenerCount > 0 ? (freshenerCount * 9.99).toFixed(2) : '0.00';
   if (stripDue) stripDue.textContent = '$' + dueToday;
 
   // Show/hide discount badge on strip when cleaning is added
