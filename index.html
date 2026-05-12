@@ -959,12 +959,14 @@
           <div class="upsell-card-left">
             <div class="upsell-card-name" id="cleaningCardName">🧼 Can Cleaning <span style="font-size: 10px; font-weight: 700; color: #1d4ed8; background: rgba(29,78,216,0.08); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Recommended</span></div>
             <div class="upsell-card-desc">High-pressure hot water wash + enzyme deodorizer that kills bacteria and eliminates the residue that attracts pests.</div>
-            <div class="upsell-card-price">
-              <span class="original">$18/mo</span>$12/mo
-              <span class="save-badge">Save 33%</span>
-            </div>
+            <div class="upsell-card-price">$89 per cleaning</div>
+            <div class="upsell-card-details">Bi-annual · billed separately after each service</div>
+            <div class="upsell-card-details" style="margin-top: 3px; color: var(--cm-text-muted);">Availability confirmed based on your address</div>
           </div>
-          <button class="upsell-btn add" id="cleaningBtn">Add</button>
+          <div style="text-align:right; min-width: 60px;">
+            <button class="upsell-btn add" id="cleaningBtn" style="margin-bottom: 4px;">Add</button>
+            <div><span style="font-size: 10px; font-weight: 600; color: var(--cm-gray-500); background: var(--cm-page-bg); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">One-time</span></div>
+          </div>
         </div>
         <div class="upsell-card" id="wasteCard" onclick="toggleUpsell('waste')">
           <div class="upsell-card-left">
@@ -1380,8 +1382,8 @@ function updateProductTable() {
 
   if (upsells.cleaning) {
     html += `<tr class="upsell-row">
-      <td>🧼 Can Cleaning ($12/month)</td>
-      <td>$0.00</td><td>1</td><td>$0.00</td>
+      <td>🧼 Can Cleaning ($89/cleaning · bi-annual)<br><span class="trial-note">(billed separately after each service)</span></td>
+      <td>—</td><td>1</td><td>TBD</td>
     </tr>`;
   }
 
@@ -1408,7 +1410,7 @@ function updateProductTable() {
 
   // Update billing summary monthly rate (base + upsells)
   const baseRate = isQuarterly ? 45 : 54;
-  const cleaningRate = upsells.cleaning ? 12 : 0;
+  const cleaningRate = 0;
   const totalMonthly = baseRate + cleaningRate;
   const summaryRate = document.getElementById('summaryRate');
   if (summaryRate) summaryRate.textContent = '$' + totalMonthly + '.00 / month';
