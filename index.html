@@ -1530,7 +1530,7 @@ function checkSameDayEligibility() {
   const timerEl = document.getElementById('sameDayTimer');
 
   const isPickupTomorrow = selected === tomorrowName;
-  const isBeforeCutoff = now.getHours() < 14; // before 2:00 PM local
+  const isBeforeCutoff = now.getHours() < 15; // before 3:00 PM local
   const isEligible = isPickupTomorrow && isBeforeCutoff;
 
   card.style.display = isEligible ? 'flex' : 'none';
@@ -1538,7 +1538,7 @@ function checkSameDayEligibility() {
   if (isEligible) {
     // Calculate and show countdown to 2:00 PM
     const cutoff = new Date();
-    cutoff.setHours(14, 0, 0, 0);
+    cutoff.setHours(15, 0, 0, 0);
     const msLeft = cutoff - now;
     const hoursLeft = Math.floor(msLeft / 3600000);
     const minsLeft = Math.floor((msLeft % 3600000) / 60000);
