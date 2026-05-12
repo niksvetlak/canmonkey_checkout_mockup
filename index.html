@@ -560,6 +560,15 @@
 
   .divider { height: 1px; background: var(--cm-border); margin: 20px 0; }
 
+  .upgrade-toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-16px);
+    background: var(--cm-black); color: white; padding: 12px 22px;
+    border-radius: 100px; font-size: 13px; font-weight: 600;
+    box-shadow: 0 4px 20px rgba(15,23,42,0.3); z-index: 500;
+    opacity: 0; transition: all 0.3s ease; pointer-events: none; white-space: nowrap;
+  }
+  .upgrade-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   /* Same as service toggle */
   .same-address-row {
     display: flex; align-items: center; gap: 12px;
@@ -874,11 +883,18 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Trash and Recycle Day
         </label>
-        <div class="can-limit-note" style="margin: 4px 0 8px;">Separate trash and recycle days? <a href="#">Upgrade Plan</a></div>
+        <div class="can-limit-note" id="separateDaysNote" style="margin: 4px 0 8px;">Separate trash and recycle days? <a href="#" onclick="upgradePlan(); return false;">Upgrade Plan</a></div>
         <select class="form-select" id="pickupDaySelect" onchange="checkSameDayEligibility()">
           <option>Sunday</option><option>Monday</option><option selected>Tuesday</option>
           <option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
         </select>
+        <div id="recycleDayRow" style="display:none; margin-top: 12px;">
+          <label class="form-label" style="margin-bottom: 6px; display:block;">Recycle Day</label>
+          <select class="form-select">
+            <option>Sunday</option><option>Monday</option><option>Tuesday</option>
+            <option>Wednesday</option><option selected>Thursday</option><option>Friday</option><option>Saturday</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -906,7 +922,7 @@
         </div>
       </div>
     </div>
-    <div class="can-limit-note" id="canLimitNote">Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade Plan</a></div>
+    <div class="can-limit-note" id="canLimitNote">Starter Plan includes up to 2 cans total. Need more? <a href="#" onclick="upgradePlan(); return false;">Upgrade Plan</a></div>
 
     <div class="form-row full" style="margin-top: 16px;">
       <div class="form-group">
@@ -1153,6 +1169,7 @@
 </div>
 
 <div class="mockup-badge">📐 Proposed Mockup</div>
+<div class="upgrade-toast" id="upgradeToast"></div>
 
 <script>
 // Dynamic sticky offsets
@@ -1171,7 +1188,13 @@ updateStickyOffsets();
 window.addEventListener('resize', updateStickyOffsets);
 
 let canCounts = { trash: 1, recycle: 1 };
-const CAN_LIMIT = 2;
+
+const PLANS = {
+  starter:  { name: 'Starter',  canLimit: 2, quarterly: 45, monthly: 54 },
+  premium:  { name: 'Premium',  canLimit: 4, quarterly: 59, monthly: 69 },
+  business: { name: 'Business', canLimit: 6, quarterly: 65, monthly: 75 }
+};
+let currentPlan = 'starter';
 
 function toggleNotif(id) {
   const chip = document.getElementById(id);
@@ -1259,7 +1282,7 @@ function adjustCan(type, delta) {
   const total = newVal + canCounts[otherType];
 
   if (newVal < 0) return;
-  if (newVal > CAN_LIMIT || total > CAN_LIMIT) {
+  if (newVal > PLANS[currentPlan].canLimit || total > PLANS[currentPlan].canLimit) {
     // Shake the stepper that was clicked
     const steppers = document.querySelectorAll('.stepper');
     const stepper = type === 'trash' ? steppers[0] : steppers[1];
@@ -1293,16 +1316,25 @@ function updateStepperStates() {
     const plusBtn = btns[1];
 
     minusBtn.classList.toggle('disabled', canCounts[type] <= 0);
-    plusBtn.classList.toggle('disabled', total >= CAN_LIMIT);
+    plusBtn.classList.toggle('disabled', total >= PLANS[currentPlan].canLimit);
   });
 
   // Update limit note
-  if (total >= CAN_LIMIT) {
+  const limit = PLANS[currentPlan].canLimit;
+  const planName = PLANS[currentPlan].name;
+  const isTopPlan = currentPlan === 'business';
+  const upgradeLink = `<a href="#" onclick="upgradePlan(); return false;">Upgrade Plan</a>`;
+
+  if (total >= limit) {
     note.classList.add('warning');
-    note.innerHTML = 'You\'ve reached the 2-can limit for the Starter Plan. Need more? <a href="#">Upgrade Plan</a>';
+    note.innerHTML = isTopPlan
+      ? `You've reached the ${limit}-can limit for the ${planName} Plan.`
+      : `You've reached the ${limit}-can limit for the ${planName} Plan. Need more? ${upgradeLink}`;
   } else {
     note.classList.remove('warning');
-    note.innerHTML = 'Starter Plan includes up to 2 cans total. Need more? <a href="#">Upgrade Plan</a>';
+    note.innerHTML = isTopPlan
+      ? `${planName} Plan includes up to ${limit} cans.`
+      : `${planName} Plan includes up to ${limit} cans total. Need more? ${upgradeLink}`;
   }
 }
 
@@ -1392,13 +1424,12 @@ function toggleUpsell(type) {
 function updateProductTable() {
   const tbody = document.getElementById('productTableBody');
   const isQuarterly = currentBilling === 'quarterly';
-  const planPrice = isQuarterly ? '$45' : '$54';
+  const plan = PLANS[currentPlan];
+  const planPrice = isQuarterly ? `$${plan.quarterly}` : `$${plan.monthly}`;
   const planLabel = isQuarterly ? 'Quarterly Pay' : 'Monthly Pay';
 
-  // No longer syncing card title with billing cadence
-
   let html = `<tr>
-    <td>Can-to-Curb Starter Plan | ${planLabel} (${planPrice}/month)<br><span class="trial-note">(free during trial)</span></td>
+    <td>Can-to-Curb ${plan.name} Plan | ${planLabel} (${planPrice}/month)<br><span class="trial-note">(free during trial)</span></td>
     <td>$0.00</td><td>1</td><td>$0.00</td>
   </tr>`;
 
@@ -1440,7 +1471,7 @@ function updateProductTable() {
   tbody.innerHTML = html;
 
   // Update billing summary monthly rate (base + upsells)
-  const baseRate = isQuarterly ? 45 : 54;
+  const baseRate = isQuarterly ? PLANS[currentPlan].quarterly : PLANS[currentPlan].monthly;
   const cleaningRate = 0;
   const totalMonthly = baseRate + cleaningRate;
   const summaryRate = document.getElementById('summaryRate');
@@ -1521,37 +1552,75 @@ function checkCleaningAvailability() {
 function checkSameDayEligibility() {
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const now = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowName = days[tomorrow.getDay()];
+  const isBeforeCutoff = now.getHours() < 15;
 
   const selected = document.getElementById('pickupDaySelect').value;
   const card = document.getElementById('onboardingCard');
   const timerEl = document.getElementById('sameDayTimer');
 
-  const isPickupTomorrow = selected === tomorrowName;
-  const isBeforeCutoff = now.getHours() < 15; // before 3:00 PM local
-  const isEligible = isPickupTomorrow && isBeforeCutoff;
+  const todayIdx = now.getDay();
+  const selectedIdx = days.indexOf(selected);
+  let daysUntil = (selectedIdx - todayIdx + 7) % 7;
+  if (daysUntil === 0) daysUntil = 7;
 
+  const isEligible = daysUntil <= 3 && isBeforeCutoff;
   card.style.display = isEligible ? 'flex' : 'none';
 
-  if (isEligible) {
-    // Calculate and show countdown to 2:00 PM
-    const cutoff = new Date();
-    cutoff.setHours(15, 0, 0, 0);
-    const msLeft = cutoff - now;
-    const hoursLeft = Math.floor(msLeft / 3600000);
-    const minsLeft = Math.floor((msLeft % 3600000) / 60000);
-    if (timerEl) timerEl.textContent = `⏱ ${hoursLeft}h ${minsLeft}m left to make tonight's route`;
+  if (isEligible && timerEl) {
+    if (daysUntil === 1) {
+      const cutoff = new Date();
+      cutoff.setHours(15, 0, 0, 0);
+      const msLeft = cutoff - now;
+      const hoursLeft = Math.floor(msLeft / 3600000);
+      const minsLeft = Math.floor((msLeft % 3600000) / 60000);
+      timerEl.textContent = `⏱ ${hoursLeft}h ${minsLeft}m left to make tonight's route`;
+    } else {
+      timerEl.textContent = `⏱ Pickup in ${daysUntil} days — secure your spot before routes are finalized`;
+    }
   }
 
-  // If hidden and was added, remove it
+  // Remove from cart if no longer eligible
   if (!isEligible && upsells.onboarding) {
     upsells.onboarding = false;
     document.getElementById('onboardingBtn').className = 'upsell-btn add';
     document.getElementById('onboardingBtn').textContent = 'Add';
     updateProductTable();
   }
+}
+
+function upgradePlan() {
+  const next = currentPlan === 'starter' ? 'premium' : currentPlan === 'premium' ? 'business' : null;
+  if (!next) return;
+  currentPlan = next;
+  const plan = PLANS[currentPlan];
+
+  // Update stepper states with new can limit
+  updateStepperStates();
+
+  // Unlock separate collection days
+  const recycleDayRow = document.getElementById('recycleDayRow');
+  const separateDaysNote = document.getElementById('separateDaysNote');
+  if (plan.canLimit > 2) {
+    if (recycleDayRow) recycleDayRow.style.display = '';
+    if (separateDaysNote) {
+      separateDaysNote.innerHTML = '✓ Separate trash and recycle days included';
+      separateDaysNote.style.color = 'var(--cm-success)';
+    }
+  }
+
+  // Update order table and billing summary
+  updateProductTable();
+
+  // Toast
+  const details = plan.canLimit === 4 ? 'up to 4 cans · 2 collection days' : 'up to 6 cans · 2 collection days';
+  showToast(`Upgraded to ${plan.name} Plan — ${details}`);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('upgradeToast');
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 3500);
 }
 
 // Init — run after all declarations
