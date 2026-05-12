@@ -1443,15 +1443,15 @@ function updateProductTable() {
 
   if (upsells.cleaning) {
     html += `<tr class="upsell-row">
-      <td>🧼 Can Cleaning · Bi-Annual (first 2 cans)<br><span class="trial-note">You save $20 · +$15/additional can</span></td>
-      <td>$59</td><td>1</td><td>$59</td>
+      <td>🧼 Can Cleaning · Bi-Annual (first 2 cans)<br><span class="trial-note">$59/cleaning · You save $20 · +$15/additional can · billed after each service</span></td>
+      <td>—</td><td>1</td><td>TBD</td>
     </tr>`;
   }
 
   if (upsells.waste) {
     html += `<tr class="upsell-row">
-      <td>🗑️ OnDemand Waste Removal<br><span class="trial-note">You save $30 · +$25/additional can</span></td>
-      <td>$59</td><td>1</td><td>$59</td>
+      <td>🗑️ OnDemand Waste Removal<br><span class="trial-note">$59 first can · You save $30 · +$25/additional can · billed after service</span></td>
+      <td>—</td><td>1</td><td>TBD</td>
     </tr>`;
   }
 
@@ -1464,9 +1464,7 @@ function updateProductTable() {
   }
 
   const onboardingTotal = upsells.onboarding ? 9.99 : 0;
-  const cleaningTotal = upsells.cleaning ? 59 : 0;
-  const wasteTotal = upsells.waste ? 59 : 0;
-  const dueNow = (freshenerCount * 9.99) + onboardingTotal + cleaningTotal + wasteTotal;
+  const dueNow = (freshenerCount * 9.99) + onboardingTotal;
   html += `<tr class="total-row">
     <td colspan="3">Total Due Today:</td><td>$${dueNow > 0 ? dueNow.toFixed(2) : '0.00'}</td>
   </tr>`;
