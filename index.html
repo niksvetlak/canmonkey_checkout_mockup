@@ -875,7 +875,7 @@
           Trash and Recycle Day
         </label>
         <div class="can-limit-note" style="margin: 4px 0 8px;">Separate trash and recycle days? <a href="#">Upgrade Plan</a></div>
-        <select class="form-select">
+        <select class="form-select" id="pickupDaySelect" onchange="checkSameDayEligibility()">
           <option>Sunday</option><option>Monday</option><option selected>Tuesday</option>
           <option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
         </select>
@@ -1169,6 +1169,10 @@ function updateStickyOffsets() {
 updateStickyOffsets();
 window.addEventListener('resize', updateStickyOffsets);
 
+// Hide same-day card by default, show only if pickup day is tomorrow
+document.getElementById('onboardingCard').style.display = 'none';
+checkSameDayEligibility();
+
 let canCounts = { trash: 1, recycle: 1 };
 const CAN_LIMIT = 2;
 
@@ -1461,6 +1465,27 @@ function updateProductTable() {
     } else {
       stripDiscount.style.display = 'none';
     }
+  }
+}
+
+function checkSameDayEligibility() {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowName = days[tomorrow.getDay()];
+
+  const selected = document.getElementById('pickupDaySelect').value;
+  const card = document.getElementById('onboardingCard');
+  const isEligible = selected === tomorrowName;
+
+  card.style.display = isEligible ? 'flex' : 'none';
+
+  // If hidden and was added, remove it
+  if (!isEligible && upsells.onboarding) {
+    upsells.onboarding = false;
+    document.getElementById('onboardingBtn').className = 'upsell-btn add';
+    document.getElementById('onboardingBtn').textContent = 'Add';
+    updateProductTable();
   }
 }
 
