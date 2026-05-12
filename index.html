@@ -942,7 +942,32 @@
 
     <div class="btn-row">
       <button class="btn-back" onclick="goToStep(2)">Back</button>
-      <button class="btn-primary" onclick="goToStep(4)">Continue</button>
+      <button class="btn-primary" onclick="checkServiceAreaAndContinue()">Continue</button>
+    </div>
+  </div>
+
+  <!-- WAITLIST SCREEN -->
+  <div class="section-card" id="stepWaitlist">
+    <div style="text-align: center; padding: 8px 0 16px;">
+      <div style="width: 72px; height: 72px; background: var(--cm-page-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; border: 1px solid var(--cm-border);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--cm-black)" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="section-title" style="font-size: 24px; margin-bottom: 12px;">You're on the list!</div>
+      <div style="font-size: 14px; color: var(--cm-gray-500); line-height: 1.7; margin-bottom: 28px;">
+        CanMonkey isn't in <strong id="waitlistCity" style="color: var(--cm-black);">your area</strong> yet — but we're expanding fast.<br>
+        We'll reach out to <strong id="waitlistEmail" style="color: var(--cm-black);">you</strong> the moment we launch near you.
+      </div>
+      <div style="background: var(--cm-page-bg); border: 1px solid var(--cm-border); border-radius: var(--radius); padding: 16px 20px; text-align: left; margin-bottom: 28px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--cm-text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;">Address on file</div>
+        <div id="waitlistAddress" style="font-size: 14px; font-weight: 500; color: var(--cm-black); line-height: 1.6;"></div>
+      </div>
+      <div style="font-size: 13px; color: var(--cm-gray-500); line-height: 1.6; padding: 16px 20px; background: var(--cm-success-bg); border-radius: var(--radius); border: 1px solid rgba(5,150,105,0.15);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" style="vertical-align: middle; margin-right: 6px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <strong style="color: #059669;">Your info is saved.</strong> No need to re-enter anything when we launch in your area.
+      </div>
+      <div style="margin-top: 24px; font-size: 13px; color: var(--cm-gray-500);">
+        Know a neighbor who needs this? <a href="#" style="color: var(--cm-black); font-weight: 600; text-decoration: none;">Share CanMonkey →</a>
+      </div>
     </div>
   </div>
 
@@ -1375,9 +1400,13 @@ function goToStep(step) {
   // Update step dots
   document.querySelectorAll('.step-dot').forEach((dot, i) => {
     dot.classList.remove('active', 'completed');
+    dot.style.opacity = '';
     if (i + 1 === step) dot.classList.add('active');
     else if (i + 1 < step) dot.classList.add('completed');
   });
+
+  // Hide waitlist if navigating back
+  document.getElementById('stepWaitlist').classList.remove('visible');
 
   // Show/hide sections
   ['step1','step2','step3','step4','step5'].forEach(id => {
@@ -1583,6 +1612,47 @@ function checkSameDayEligibility() {
     document.getElementById('onboardingBtn').className = 'upsell-btn add';
     document.getElementById('onboardingBtn').textContent = 'Add';
     updateProductTable();
+  }
+}
+
+function checkServiceAreaAndContinue() {
+  const city = (document.getElementById('serviceCity').value || '').trim().toLowerCase();
+  const isInArea = PHOENIX_METRO.includes(city);
+
+  if (isInArea) {
+    goToStep(4);
+  } else {
+    // Populate waitlist screen
+    const cityDisplay = document.getElementById('serviceCity').value || 'your area';
+    const emailEl = document.querySelector('#step1 input[type="email"]');
+    const addr1 = document.querySelectorAll('#step2 .form-input')[0].value;
+    const cityVal = document.getElementById('serviceCity').value;
+    const stateEl = document.querySelectorAll('#step2 .form-input')[2];
+    const zipEl = document.querySelectorAll('#step2 .form-input')[3];
+    const state = stateEl ? stateEl.value : '';
+    const zip = zipEl ? zipEl.value : '';
+
+    document.getElementById('waitlistCity').textContent = cityDisplay;
+    if (emailEl) document.getElementById('waitlistEmail').textContent = emailEl.value;
+    document.getElementById('waitlistAddress').innerHTML = `${addr1}<br>${cityVal}, ${state} ${zip}`;
+
+    // Hide all steps and show waitlist
+    ['step1','step2','step3','step4','step5'].forEach(id => {
+      document.getElementById(id).classList.remove('visible');
+    });
+    document.getElementById('stepWaitlist').classList.add('visible');
+    document.getElementById('trialBanner').classList.remove('visible');
+    document.getElementById('orderStrip').classList.remove('visible');
+
+    // Mark steps 1 & 2 completed, dim the rest
+    document.getElementById('progressBar').setAttribute('data-step', 3);
+    document.querySelectorAll('.step-dot').forEach((dot, i) => {
+      dot.classList.remove('active', 'completed');
+      if (i < 2) dot.classList.add('completed');
+      if (i >= 2) dot.style.opacity = '0.3';
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
