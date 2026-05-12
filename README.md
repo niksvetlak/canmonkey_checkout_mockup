@@ -108,14 +108,44 @@ Response: {
 
 ---
 
-### 6. Address Validation (Step 2)
+### 6. Service Area Check (Step 2 — after address entry)
+
+**Overview:** After the customer submits their address on Step 2, run a silent geo check against Spencer's triangular service area checker. Do not block or reject the customer mid-checkout — instead, branch the flow based on the result.
+
+**When to trigger:** On "Continue" click at the end of Step 2, before navigating to Step 3.
+
+**If in service area:** Proceed normally to Step 3.
+
+**If outside service area:** Skip Steps 3–5 entirely. Show a waitlist confirmation screen in place of the checkout with messaging like:
+> "We're not in your area yet — but we're growing fast. We've added you to the waitlist and will notify you the moment we launch near you."
+
+By end of Step 2, you already have everything needed to create the lead: name, email, phone, and service address.
+
+```
+POST /api/service-area/check
+Body: { zip: "XXXXX", address: "123 Main St", city: "...", state: "AZ" }
+Response: { in_area: true | false, area_id: "phoenix-north" | null }
+```
+
+**If out of area — lead capture flow:**
+1. POST lead to n8n webhook (or directly to Monday.com Leads board)
+2. Tag as `Waitlisted`
+3. Show waitlist confirmation screen — do not proceed to payment
+
+**Existing n8n flow:** The current flow (signup → team cancels → n8n checks address → Monday waitlist) should remain as a safety net for any signups that bypass the frontend check. Long-term it can be deprecated once the frontend check is reliable.
+
+**Important:** Never show "outside service area" language at checkout. Frame it as joining a waitlist — the lead is still valuable.
+
+---
+
+### 7. Address Validation (Step 2 — before service area check)
 **Current behavior:** Free-text input, no validation.
 
 **Production:** Recommend Google Places Autocomplete or USPS address validation to ensure accurate ZIP/city data before the market check runs.
 
 ---
 
-### 7. Stripe Checkout / Payment (Step 5)
+### 8. Stripe Checkout / Payment (Step 5)
 
 The payment form is a mockup only — no Stripe.js is wired up.
 
@@ -146,12 +176,12 @@ Body: {
 
 ---
 
-### 8. Business Registration (Step 1)
+### 9. Business Registration (Step 1)
 If `is_business: true`, save `company_name` and `company_type` to the customer record. This may affect invoicing (B2B invoice format vs. residential receipt).
 
 ---
 
-### 9. Notification Preferences (Step 1)
+### 10. Notification Preferences (Step 1)
 Customer selects Email and/or SMS. At least one must be selected (enforced in UI). Pass to your notification system on customer creation.
 
 ---
