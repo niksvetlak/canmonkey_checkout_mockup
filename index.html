@@ -1450,8 +1450,8 @@ function updateProductTable() {
 
   if (upsells.waste) {
     html += `<tr class="upsell-row">
-      <td>🗑️ OnDemand Waste Removal<br><span class="trial-note">(billed separately after signup)</span></td>
-      <td>—</td><td>1</td><td>TBD</td>
+      <td>🗑️ OnDemand Waste Removal<br><span class="trial-note">You save $30 · +$25/additional can</span></td>
+      <td>$59</td><td>1</td><td>$59</td>
     </tr>`;
   }
 
@@ -1464,7 +1464,9 @@ function updateProductTable() {
   }
 
   const onboardingTotal = upsells.onboarding ? 9.99 : 0;
-  const dueNow = (freshenerCount * 9.99) + onboardingTotal;
+  const cleaningTotal = upsells.cleaning ? 59 : 0;
+  const wasteTotal = upsells.waste ? 59 : 0;
+  const dueNow = (freshenerCount * 9.99) + onboardingTotal + cleaningTotal + wasteTotal;
   html += `<tr class="total-row">
     <td colspan="3">Total Due Today:</td><td>$${dueNow > 0 ? dueNow.toFixed(2) : '0.00'}</td>
   </tr>`;
@@ -1487,17 +1489,9 @@ function updateProductTable() {
   const dueToday = dueNow > 0 ? dueNow.toFixed(2) : '0.00';
   if (stripDue) stripDue.textContent = '$' + dueToday;
 
-  // Show/hide discount badge on strip when cleaning is added
+  // Strip discount only applies to monthly rate changes — hide it
   const stripDiscount = document.getElementById('stripDiscount');
-  if (stripDiscount) {
-    const savingsAmt = upsells.cleaning ? 9 : 0;
-    if (savingsAmt > 0) {
-      stripDiscount.textContent = '−$' + savingsAmt + '/mo savings';
-      stripDiscount.style.display = 'inline';
-    } else {
-      stripDiscount.style.display = 'none';
-    }
-  }
+  if (stripDiscount) stripDiscount.style.display = 'none';
 }
 
 const PHOENIX_METRO = [
