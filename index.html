@@ -765,7 +765,7 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">City</label>
-        <input class="form-input" type="text" value="Phoenix" />
+        <input class="form-input" type="text" value="Phoenix" id="serviceCity" oninput="checkCleaningAvailability()" />
       </div>
       <div class="form-group">
         <label class="form-label">State</label>
@@ -1173,6 +1173,9 @@ window.addEventListener('resize', updateStickyOffsets);
 document.getElementById('onboardingCard').style.display = 'none';
 checkSameDayEligibility();
 
+// Run cleaning availability check on load
+checkCleaningAvailability();
+
 let canCounts = { trash: 1, recycle: 1 };
 const CAN_LIMIT = 2;
 
@@ -1357,6 +1360,9 @@ function goToStep(step) {
 
   // Show order strip on step 4 and 5
   document.getElementById('orderStrip').classList.toggle('visible', step >= 4);
+
+  // Re-check availability when reaching step 4
+  if (step === 4) checkCleaningAvailability();
   document.getElementById('trialBanner').classList.toggle('visible', step === 1);
 
   // Scroll to top
@@ -1464,6 +1470,56 @@ function updateProductTable() {
       stripDiscount.style.display = 'inline';
     } else {
       stripDiscount.style.display = 'none';
+    }
+  }
+}
+
+const PHOENIX_METRO = [
+  'phoenix','scottsdale','tempe','mesa','chandler','gilbert','glendale',
+  'peoria','surprise','goodyear','avondale','buckeye','queen creek',
+  'san tan valley','maricopa','fountain hills','cave creek','carefree',
+  'paradise valley','litchfield park','el mirage','tolleson','sun city',
+  'sun city west','youngtown','apache junction','anthem'
+];
+
+function checkCleaningAvailability() {
+  const city = (document.getElementById('serviceCity').value || '').trim().toLowerCase();
+  const isPhoenix = PHOENIX_METRO.includes(city);
+  const card = document.getElementById('cleaningCard');
+  const btn = document.getElementById('cleaningBtn');
+  const priceEl = card.querySelector('.upsell-card-price');
+  const descEl = card.querySelector('.upsell-card-desc');
+
+  if (isPhoenix) {
+    card.querySelector('.availability-note') && card.querySelector('.availability-note').remove();
+    priceEl.style.display = '';
+    if (!upsells.cleaning) {
+      btn.className = 'upsell-btn add';
+      btn.textContent = 'Add';
+    }
+    btn.onclick = null;
+  } else {
+    // Waitlist mode
+    if (!card.querySelector('.availability-note')) {
+      const note = document.createElement('div');
+      note.className = 'availability-note';
+      note.style.cssText = 'font-size:11px; color:#b45309; background:rgba(180,83,9,0.08); padding:4px 8px; border-radius:4px; margin-top:6px; font-weight:600;';
+      note.textContent = 'Not yet available in your market — join the waitlist';
+      priceEl.after(note);
+    }
+    if (!upsells.cleaning) {
+      btn.className = 'upsell-btn add';
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--cm-black)';
+      btn.style.border = '1.5px solid var(--cm-black)';
+      btn.textContent = 'Waitlist';
+    }
+    // Remove cleaning from cart if switching away from Phoenix
+    if (upsells.cleaning) {
+      upsells.cleaning = false;
+      card.classList.remove('added');
+      btn.textContent = 'Waitlist';
+      updateProductTable();
     }
   }
 }
