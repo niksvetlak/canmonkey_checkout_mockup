@@ -958,10 +958,10 @@
         <div class="upsell-card" id="cleaningCard" onclick="toggleUpsell('cleaning')">
           <div class="upsell-card-left">
             <div class="upsell-card-name" id="cleaningCardName">🧼 Can Cleaning <span style="font-size: 10px; font-weight: 700; color: #1d4ed8; background: rgba(29,78,216,0.08); padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px;">Recommended</span></div>
-            <div class="upsell-card-desc">Quarterly high-pressure hot water wash + enzyme deodorizer that kills bacteria and eliminates the residue that attracts pests. Skipping it leads to buildup that's nearly impossible to remove later.</div>
+            <div class="upsell-card-desc">High-pressure hot water wash + enzyme deodorizer that kills bacteria and eliminates the residue that attracts pests.</div>
             <div class="upsell-card-price">
-              <span class="original">$18/mo</span>$9/mo
-              <span class="save-badge">Save 50%</span>
+              <span class="original">$18/mo</span>$12/mo
+              <span class="save-badge">Save 33%</span>
             </div>
           </div>
           <button class="upsell-btn add" id="cleaningBtn">Add</button>
@@ -1379,7 +1379,7 @@ function updateProductTable() {
 
   if (upsells.cleaning) {
     html += `<tr class="upsell-row">
-      <td>🧼 Can Cleaning ($9/month)</td>
+      <td>🧼 Can Cleaning ($12/month)</td>
       <td>$0.00</td><td>1</td><td>$0.00</td>
     </tr>`;
   }
@@ -1407,7 +1407,7 @@ function updateProductTable() {
 
   // Update billing summary monthly rate (base + upsells)
   const baseRate = isQuarterly ? 45 : 54;
-  const cleaningRate = upsells.cleaning ? 9 : 0;
+  const cleaningRate = upsells.cleaning ? 12 : 0;
   const totalMonthly = baseRate + cleaningRate;
   const summaryRate = document.getElementById('summaryRate');
   if (summaryRate) summaryRate.textContent = '$' + totalMonthly + '.00 / month';
